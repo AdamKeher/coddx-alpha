@@ -20,6 +20,8 @@ const Columns = styled.div`
   padding: 10px 0;
   overflow-x: auto;
   min-height: calc(100vh - 100px);
+  width: 100%;
+  box-sizing: border-box;
 `;
 
 const selectedFile = (window && window['initialData'] ? window['initialData']['selectedFile'] : '') || 'TODO.md';
@@ -362,6 +364,7 @@ export default function TaskBoard({ vscode, initialData }) {
                     isLast={isLast}
                     allTasks={state.tasks} // Pass all tasks to the column
                     selectedTaskIds={selectedTaskIds}
+                    vscodeHelper={vscodeHelper}
                     onSelectTask={handleSelectTask}
                     onChangeTask={(id: string, newTask: TaskInterface) => {
                       const newState = {

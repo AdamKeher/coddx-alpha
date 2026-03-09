@@ -6,12 +6,28 @@ import { IConfig, ICommand, CommandAction } from './app/model';
 import { deepFind, VER } from './app/Utils';
 
 export default class TaskBoardLoader {
+  public static currentPanel: TaskBoardLoader | undefined;
   private readonly _panel: vscode.WebviewPanel;
   private readonly _extensionPath: string;
   private _disposables: vscode.Disposable[] = [];
   private _selectedFile: string = '';
 
-  constructor(extensionPath: string, uri: vscode.Uri) {
+  public static createOrShow(extensionPath: string, uri: vscode.Uri) {
+    const column = vscode.window.activeTextEditor
+      ? vscode.window.activeTextEditor.viewColumn
+      : undefined;
+
+    // If we already have a panel, show it.
+    if (TaskBoardLoader.currentPanel) {
+      TaskBoardLoader.currentPanel._panel.reveal(column);
+      return;
+    }
+
+    // Otherwise, create a new panel.
+    TaskBoardLoader.currentPanel = new TaskBoardLoader(extensionPath, uri);
+  }
+
+  private constructor(extensionPath: string, uri: vscode.Uri) {
     this._extensionPath = extensionPath;
 
     const configuration = vscode.workspace.getConfiguration();
@@ -20,10 +36,10 @@ export default class TaskBoardLoader {
     this._selectedFile = filesArr[0];
 
     const column = vscode.window.activeTextEditor
-      ? vscode.ViewColumn.Two
+      ? vscode.window.activeTextEditor.viewColumn
       : vscode.ViewColumn.One;
 
-    this._panel = vscode.window.createWebviewPanel('taskBoard', 'AK74 Task Board', column, {
+    this._panel = vscode.window.createWebviewPanel('taskBoard', 'AK74 Task Board', column || vscode.ViewColumn.One, {
       enableScripts: true,
       localResourceRoots: [vscode.Uri.file(path.join(extensionPath, 'configViewer'))],
       retainContextWhenHidden: true
@@ -91,6 +107,7 @@ export default class TaskBoardLoader {
   }
 
   public dispose() {
+    TaskBoardLoader.currentPanel = undefined;
     this._panel.dispose();
     while (this._disposables.length) {
       const x = this._disposables.pop();

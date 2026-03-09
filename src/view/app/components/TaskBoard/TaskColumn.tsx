@@ -10,12 +10,12 @@ const Container = styled.div<{ isDragging: boolean; isCollapsed?: boolean }>`
   min-height: 150px;
   margin: 0px 4px;
   border-radius: 4px;
-  width: ${props => (props.isCollapsed ? '50px' : '33.3vw')};
+  flex: ${props => (props.isCollapsed ? '0 0 50px' : '1')};
   min-width: ${props => (props.isCollapsed ? '50px' : '300px')};
   display: flex;
   flex-direction: column;
   background-color: ${props => (props.isDragging ? 'var(--vscode-editor-selectionBackground)' : 'rgba(0,0,0,0.1)')};
-  transition: width 0.2s ease-in-out, min-width 0.2s ease-in-out;
+  transition: all 0.2s ease-in-out;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.05);
 `;
@@ -116,6 +116,7 @@ interface ColumnProps {
   column: ColumnInterface;
   isLast: boolean;
   selectedTaskIds: string[];
+  vscodeHelper: any;
   onSelectTask: (taskId: string, multi: boolean) => void;
   onChangeTask: (idx: string, task: any) => void;
   onDeleteTask: (task: TaskInterface, columnId: string) => void;
@@ -126,15 +127,33 @@ interface ColumnProps {
 }
 
 export default memo(
-  ({ column, allTasks, columnIndex, isLast, selectedTaskIds, onSelectTask, onChangeTask, onDeleteTask, onInProgressTask, onBackwardsTask, onCompleteTask, onMoveTask }: ColumnProps) => {
+  ({ column, allTasks, columnIndex, isLast, selectedTaskIds, vscodeHelper, onSelectTask, onChangeTask, onDeleteTask, onInProgressTask, onBackwardsTask, onCompleteTask, onMoveTask }: ColumnProps) => {
     const subCols = column.subColumns || [column];
-    const [collapsedSections, setCollapsedSections] = useState<string[]>([]);
-    const [isColumnCollapsed, setIsColumnCollapsed] = useState(false);
+    const savedState = vscodeHelper.getState();
+    const [collapsedSections, setCollapsedSections] = useState<string[]>(savedState.collapsedSections || []);
+    const [isColumnCollapsed, setIsColumnCollapsed] = useState(
+      savedState.isColumnCollapsed?.[column.id] ?? column.title.toLowerCase().includes('archived')
+    );
 
     const toggleSection = (id: string) => {
-      setCollapsedSections(prev => 
-        prev.includes(id) ? prev.filter(s => s !== id) : [...prev, id]
-      );
+      const newSections = collapsedSections.includes(id) 
+        ? collapsedSections.filter(s => s !== id) 
+        : [...collapsedSections, id];
+      setCollapsedSections(newSections);
+      vscodeHelper.setState({ ...vscodeHelper.getState(), collapsedSections: newSections });
+    };
+
+    const toggleColumn = () => {
+      const newState = !isColumnCollapsed;
+      setIsColumnCollapsed(newState);
+      const currentState = vscodeHelper.getState();
+      vscodeHelper.setState({
+        ...currentState,
+        isColumnCollapsed: {
+          ...(currentState.isColumnCollapsed || {}),
+          [column.id]: newState
+        }
+      });
     };
 
     return (
@@ -149,7 +168,7 @@ export default memo(
             <Title 
               {...provided.dragHandleProps} 
               isCollapsed={isColumnCollapsed}
-              onClick={() => setIsColumnCollapsed(!isColumnCollapsed)}
+              onClick={toggleColumn}
             >
               <span>
                 {column.title.indexOf('✓') >= 0 ? <i className="fas fa-check-double" style={{marginRight: 8}} /> : null}
@@ -223,6 +242,7 @@ export default memo(
                                             task={t}
                                             index={i}
                                             isSelected={selectedTaskIds.includes(t.id)}
+                                            vscodeHelper={vscodeHelper}
                                             onSelect={onSelectTask}
                                             canMoveUp={column.isGroup && canMoveUp}
                                             canMoveDown={column.isGroup && canMoveDown}
@@ -290,6 +310,7 @@ export default memo(
                                 task={t}
                                 index={i}
                                 isSelected={selectedTaskIds.includes(t.id)}
+                                vscodeHelper={vscodeHelper}
                                 onSelect={onSelectTask}
                                 onChangeTitle={(newTitle: string) => {
                                   updateTaskMetadata(t, newTitle);

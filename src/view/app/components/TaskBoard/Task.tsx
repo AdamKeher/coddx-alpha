@@ -242,6 +242,7 @@ interface TaskProps {
   onBackwards: (task: TaskInterface) => void;
   onComplete: (task: TaskInterface) => void;
   onChangeTask: (id: string, task: TaskInterface) => void;
+  vscodeHelper: any;
   onMoveUp?: (task: TaskInterface) => void;
   onMoveDown?: (task: TaskInterface) => void;
   canMoveUp?: boolean;
@@ -262,6 +263,7 @@ export default memo(
     onBackwards,
     onComplete,
     onChangeTask,
+    vscodeHelper,
     onMoveUp,
     onMoveDown,
     canMoveUp,
@@ -270,9 +272,24 @@ export default memo(
     // mainKey is used to force re-render StyledTextarea as it doesn't auto re-render as expected.
     const [mainKey, setMainKey] = React.useState('key_' + Math.random());
     const [isEditing, setIsEditing] = React.useState(false);
-    const [isCollapsed, setIsCollapsed] = React.useState(true);
+    const savedState = vscodeHelper.getState();
+    const [isCollapsed, setIsCollapsed] = React.useState(savedState.isTaskCollapsed?.[task.id] ?? true);
     const [menuActive, setMenuActive] = React.useState('');
     const inputRef: React.RefObject<HTMLTextAreaElement> = React.createRef();
+
+    const toggleCollapsed = (e) => {
+      e.stopPropagation();
+      const newState = !isCollapsed;
+      setIsCollapsed(newState);
+      const currentState = vscodeHelper.getState();
+      vscodeHelper.setState({
+        ...currentState,
+        isTaskCollapsed: {
+          ...(currentState.isTaskCollapsed || {}),
+          [task.id]: newState
+        }
+      });
+    };
 
     React.useEffect(() => {
       // on did mount
@@ -409,7 +426,7 @@ export default memo(
                         dangerouslySetInnerHTML={{ __html: parseInline(title || '&nbsp;') }}
                       />
                       {hasDescription && (
-                        <ToggleDescIcon onClick={(e) => { e.stopPropagation(); setIsCollapsed(!isCollapsed); }}>
+                        <ToggleDescIcon onClick={toggleCollapsed}>
                           <i className={`fas fa-chevron-${isCollapsed ? 'down' : 'up'}`} />
                         </ToggleDescIcon>
                       )}

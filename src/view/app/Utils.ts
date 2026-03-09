@@ -164,6 +164,8 @@ export const sendCommand = (vscode: any, action: CommandAction, dataStr: string)
 
 export function getVscodeHelper(vscode: any) {
   return {
+    getState: () => vscode.getState ? vscode.getState() : {},
+    setState: (state: any) => vscode.setState && vscode.setState(state),
     showMessage: (msg: string) =>
       vscode.postMessage({
         action: CommandAction.ShowMessage,
