@@ -20,7 +20,7 @@ export default class ViewLoader {
     // if (config) {
     this._panel = vscode.window.createWebviewPanel(
       'configView',
-      'Coddx - Generate Files',
+      'AK74 - Generate Files',
       column || vscode.ViewColumn.Two,
       {
         enableScripts: true,
@@ -30,7 +30,7 @@ export default class ViewLoader {
 
     // get base path (from the user's workspace path):
     const rootPath = deepFind(vscode, 'workspace.workspaceFolders[0].uri.fsPath', '') + '/';
-    const templateFilePath = rootPath + '/.coddx-template';
+    const templateFilePath = rootPath + '/.ak74-template';
     let basePath = ''; // relative
 
     if (uri && uri.fsPath) {
@@ -44,7 +44,7 @@ export default class ViewLoader {
     // }
 
     // load template file:
-    // const filePath = '/Users/duc/Documents/downloads/coddx-ext/.coddx-template';
+    // const filePath = '/Users/duc/Documents/downloads/coddx-ext/.ak74-template';
     const fileUri = vscode.Uri.file(templateFilePath);
     const templateString = this.getFileContent(fileUri);
 
@@ -119,7 +119,7 @@ export default class ViewLoader {
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Coddx - Generate Files</title>
+        <title>AK74 - Generate Files</title>
 
         <meta http-equiv="Content-Security-Policy"
                     content="default-src 'none';
@@ -156,7 +156,7 @@ export default class ViewLoader {
     // if (fs.existsSync(fileUri.fsPath)) {}
     fs.writeFileSync(fileUri.fsPath, config.description || '');
 
-    vscode.window.showInformationMessage(`👍 Template saved to .coddx-template`);
+    vscode.window.showInformationMessage(`👍 Template saved to .ak74-template`);
   }
 
   private mkDirByPathSync(targetDir: string, { baseDir = '', isRelativeToScript = false } = {}) {

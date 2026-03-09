@@ -56,18 +56,18 @@ const TaskContainer = styled.div<{ isDragging: boolean; category?: string }>`
   background-color: ${props => getCategoryColor(props.category, props.isDragging).bg};
   color: ${props => getCategoryColor(props.category, props.isDragging).fg};
   transition: all 0.2s ease;
-  overflow: hidden;
-  border: 0px solid transparent;
+  overflow: visible; /* Changed from hidden to show shadow/scale */
+  border: none;
+  box-sizing: border-box;
+  z-index: 1;
 
   &:hover {
     filter: brightness(1.15);
-    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
-    transform: translateY(-1px);
-    border: 5px solid ${props => getCategoryColor(props.category, props.isDragging).outline};
-    margin-top: -5px;
-    margin-bottom: 3px;
-    margin-left: 0px;
-    margin-right: -5px;
+    transform: scale(1.02) translateY(-2px);
+    box-shadow: 
+      0 0 0 5px ${props => getCategoryColor(props.category, props.isDragging).outline},
+      0 8px 16px rgba(0, 0, 0, 0.4);
+    z-index: 10;
   }
 `;
 
@@ -129,17 +129,35 @@ const MainRow = styled.div`
   padding-right: 8px;
 `;
 
-const ActionIcon = styled.span`
+const CategoryIcon = styled.span`
+  margin-right: 6px;
+  font-size: 0.9em;
+  opacity: 0.9;
+`;
+
+const TaskTimestamps = styled.div`
+  padding: 2px 8px 6px 32px;
+  font-size: 0.75em;
+  opacity: 0.7;
+  font-style: italic;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+`;
+
+const ActionIcon = styled.span<{ disabled?: boolean }>`
   font-size: 0.9em;
   padding: 2px 6px;
   margin: 0 3px;
-  cursor: pointer;
+  cursor: ${props => props.disabled ? 'default' : 'pointer'};
   background-color: rgba(255, 255, 255, 0.15);
   color: #fff;
   border-radius: 4px;
   transition: background 0.1s;
+  opacity: ${props => props.disabled ? 0.3 : 1};
+  pointer-events: ${props => props.disabled ? 'none' : 'auto'};
   &:hover {
-    background-color: rgba(255, 255, 255, 0.3);
+    background-color: ${props => props.disabled ? 'rgba(255, 255, 255, 0.15)' : 'rgba(255, 255, 255, 0.3)'};
   }
 `;
 
@@ -159,6 +177,10 @@ interface TaskProps {
   onInProgress: (task: TaskInterface) => void;
   onComplete: (task: TaskInterface) => void;
   onChangeTask: (id: string, task: TaskInterface) => void;
+  onMoveUp?: (task: TaskInterface) => void;
+  onMoveDown?: (task: TaskInterface) => void;
+  canMoveUp?: boolean;
+  canMoveDown?: boolean;
 }
 
 export default memo(
@@ -171,7 +193,11 @@ export default memo(
     onDelete,
     onInProgress,
     onComplete,
-    onChangeTask
+    onChangeTask,
+    onMoveUp,
+    onMoveDown,
+    canMoveUp,
+    canMoveDown
   }: TaskProps) => {
     // mainKey is used to force re-render StyledTextarea as it doesn't auto re-render as expected.
     const [mainKey, setMainKey] = React.useState('key_' + Math.random());
@@ -216,7 +242,12 @@ export default memo(
                 <Handle {...provided.dragHandleProps}>
                   <DragIcon />
                 </Handle>
-                <TickMark>{column.title.indexOf('✓') >= 0 ? '✓ ' : ''}</TickMark>
+                <TickMark>{column.title.indexOf('✓') >= 0 ? <i className="fas fa-check-circle" /> : ''}</TickMark>
+                {(task.category?.toLowerCase() === 'bug' || task.category?.toLowerCase() === 'fix') && (
+                  <CategoryIcon title={task.category}>
+                    <i className="fas fa-bug" />
+                  </CategoryIcon>
+                )}
 
                 {isEditing ? (
                   <StyledTextarea
@@ -263,6 +294,17 @@ export default memo(
                 )}
               </MainRow>
 
+              {(!isEditing && task.content && (task.content.includes('> Started:') || task.content.includes('> Completed:'))) && (
+                <TaskTimestamps>
+                  {task.content.split('\n')
+                    .filter(line => line.startsWith('> Started:') || line.startsWith('> Completed:'))
+                    .map((line, idx) => (
+                      <span key={idx}>{line.replace('> ', '')}</span>
+                    ))
+                  }
+                </TaskTimestamps>
+              )}
+
               {isEditing ? (
                 <ActionWrapper>
                   <ActionIcon
@@ -288,6 +330,24 @@ export default memo(
                 </ActionWrapper>
               ) : (
                 <ActionWrapper>
+                  {onMoveUp && (
+                    <ActionIcon
+                      data-type="action-icon"
+                      disabled={!canMoveUp}
+                      onClick={() => canMoveUp && onMoveUp(task)}
+                    >
+                      <i className="fas fa-chevron-up" />
+                    </ActionIcon>
+                  )}
+                  {onMoveDown && (
+                    <ActionIcon
+                      data-type="action-icon"
+                      disabled={!canMoveDown}
+                      onClick={() => canMoveDown && onMoveDown(task)}
+                    >
+                      <i className="fas fa-chevron-down" />
+                    </ActionIcon>
+                  )}
                   {(!task.done || !column.isLast) && (
                     <ActionIcon data-type="action-icon" onClick={() => onInProgress(task)}>
                       <i className="fas fa-arrow-right" />

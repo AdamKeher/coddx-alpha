@@ -16,7 +16,7 @@ export default class ViewLoader {
   constructor(extensionPath: string, uri: vscode.Uri) {
     // load "coddx.taskBoard.fileList" from config (settings):
     const configuration = vscode.workspace.getConfiguration();
-    const fileList: string = configuration.get('coddx.taskBoard.fileList') || 'TODO.md';
+    const fileList: string = configuration.get('ak74.taskBoard.fileList') || 'TODO.md';
     const filesArr = fileList.split(',').map(str => str.trim());
     selectedFile = filesArr[0];
 
@@ -27,7 +27,7 @@ export default class ViewLoader {
 
     // let config = this.getFileContent();
     // if (config) {
-    this._panel = vscode.window.createWebviewPanel('configView', 'Task Board', column || vscode.ViewColumn.Two, {
+    this._panel = vscode.window.createWebviewPanel('configView', 'AK74 Task Board', column || vscode.ViewColumn.Two, {
       enableScripts: true,
       localResourceRoots: [vscode.Uri.file(path.join(extensionPath, 'configViewer'))]
     });
@@ -53,6 +53,23 @@ export default class ViewLoader {
       rootPath
     });
     __panel = this._panel;
+
+    // Refresh when file is saved
+    vscode.workspace.onDidSaveTextDocument((e) => {
+        const fullPath = path.join(rootPath, selectedFile);
+        if (e.fileName.toLowerCase() === vscode.Uri.file(fullPath).fsPath.toLowerCase()) {
+            const todoStr = this.getFileContent(vscode.Uri.file(fullPath));
+            if (this._panel) {
+                this._panel.webview.html = this.getWebviewContent({
+                    basePath,
+                    templateString: todoStr || '',
+                    fileList,
+                    selectedFile,
+                    rootPath
+                });
+            }
+        }
+    }, null, this._disposables);
 
     this._panel.webview.onDidReceiveMessage(
       (command: ICommand) => {

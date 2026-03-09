@@ -1,14 +1,14 @@
 {
-  "name": "coddx-alpha",
-  "displayName": "TODO.md Kanban Board",
-  "description": "Coddx - a collection of tools that help developers program efficiently. Some useful features like: Kanban Board to manage project tasks in TODO.md, generating multiple files from templates quickly.",
-  "version": "0.2.55",
-  "publisher": "coddx",
+  "name": "ak74-todo-kanban",
+  "displayName": "AK74: TODO.md Kanban Task Board",
+  "description": "AK74: TODO.md Kanban Task Board - A collection of tools that help developers program efficiently. Forked from original Coddx. Some useful features like: Kanban Board to manage project tasks in TODO.md, generating multiple files from templates quickly.",
+  "version": "0.3.0",
+  "publisher": "ak74",
   "license": "MIT",
-  "homepage": "https://github.com/coddx-hq",
+  "homepage": "https://github.com/AdamKeher/coddx-alpha",
   "repository": {
     "type": "git",
-    "url": "https://github.com/coddx-hq/coddx-alpha.git"
+    "url": "https://github.com/AdamKeher/coddx-alpha.git"
   },
   "keywords": [
     "todo",
@@ -45,12 +45,12 @@
       {
         "command": "extension.viewconfig",
         "title": "Generate files",
-        "category": "Coddx"
+        "category": "AK74"
       },
       {
         "command": "extension.taskboard",
         "title": "TODO.md Kanban Task Board",
-        "category": "Coddx"
+        "category": "AK74"
       }
     ],
     "menus": {
@@ -59,6 +59,22 @@
           "command": "extension.viewconfig"
         }
       ]
+    },
+    "configuration": {
+      "type": "object",
+      "title": "AK74 Configuration",
+      "properties": {
+        "ak74.taskBoard.fileList": {
+          "type": "string",
+          "default": "TODO.md",
+          "description": "List of markdown files to show in Task Board (comma separated)."
+        },
+        "ak74.generateFiles.template": {
+          "type": "string",
+          "default": ".ak74-template",
+          "description": "The template file name."
+        }
+      }
     }
   },
   "scripts": {

@@ -111,7 +111,7 @@ export default ({
             onChange={sel => {
               if (sel.value === 'ADD') {
                 vscodeHelper.showMessage(
-                  'In your workspace "settings.json" file, add this: "coddx.taskBoard.fileList": "TODO.md, folder/TODO-name.md" (comma separated, use your file paths)'
+                  'In your workspace "settings.json" file, add this: "ak74.taskBoard.fileList": "TODO.md, folder/TODO-name.md" (comma separated, use your file paths)'
                 );
                 return;
               }
@@ -124,7 +124,7 @@ export default ({
         </span>
         <a
           style={{ position: 'absolute', right: 15, top: 15 }}
-          href="https://nnote.cc/s/k0o93/todomd-kanban-board-documentation"
+          href="https://github.com/AdamKeher/coddx-alpha/blob/master/docs/task-board.md"
         >
           Help | Doc
         </a>

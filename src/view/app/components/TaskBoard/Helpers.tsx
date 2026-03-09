@@ -1,11 +1,10 @@
 import * as React from 'react';
 import { TaskInterface } from './Task';
 
-export const defaultDataString = `# Project
+export const defaultDataString = `# AK74: TODO.md Kanban Task Board
 
-Project Description
-
-<em>[TODO.md spec & Kanban Board](https://bit.ly/3fCwKfM)</em>
+AK74 manages tasks and save them as TODO.md.
+<em>[Forked from original Coddx project](https://github.com/AdamKeher/coddx-alpha)</em>
 
 ### Todo
 

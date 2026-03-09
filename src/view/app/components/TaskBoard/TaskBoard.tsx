@@ -6,7 +6,7 @@ import { DragDropContext, Droppable } from 'react-beautiful-dnd';
 import { parseMarkdown, defaultDataString, getMarkdown } from './Helpers';
 
 import { TaskInterface } from './Task';
-import TaskColumn, { ColumnInterface } from './TaskColumn';
+import TaskColumn from './TaskColumn';
 import ButtonBar from './ButtonBar';
 
 // import '@atlaskit/css-reset';
@@ -31,9 +31,68 @@ export default function TaskBoard({ vscode, initialData }) {
 
   const reloadFile = () => sendCommand(vscode, CommandAction.Load, selectedFile);
 
+  const renderedColumns = [];
+  let currentGroup = null;
+
+  state.columnOrder.forEach((id) => {
+    const col = state.columns[id];
+    if (id.startsWith('Todo')) {
+      if (!currentGroup) {
+        currentGroup = {
+          id: id, // use first Todo as ID
+          title: 'Todo',
+          isGroup: true,
+          subColumns: [col]
+        };
+        renderedColumns.push(currentGroup);
+      } else {
+        currentGroup.subColumns.push(col);
+      }
+    } else {
+      currentGroup = null;
+      renderedColumns.push({ ...col, isGroup: false });
+    }
+  });
+
   React.useEffect(() => {
     reloadFile();
   }, []);
+
+  const updateTaskTimestamps = (task: TaskInterface, sourceColId: string, destColId: string) => {
+    const now = new Date().toLocaleString();
+    const isTodo = (id: string) => id.startsWith('Todo');
+    const isDone = (id: string) => id.toLowerCase().indexOf('done') >= 0 || id.toLowerCase().indexOf('completed') >= 0 || id.toLowerCase().indexOf('cancelled') >= 0;
+    const isInProgress = (id: string) => !isTodo(id) && !isDone(id);
+
+    // Filter out Started and Completed. Also filter out Added if it exists.
+    let lines = task.content.split('\n');
+    lines = lines.filter(line => !line.startsWith('> Started:') && !line.startsWith('> Completed:') && !line.startsWith('> Added:'));
+    
+    // If it already had a Started timestamp, we need to decide whether to keep it
+    const originalLines = task.content.split('\n');
+    const existingStarted = originalLines.find(l => l.startsWith('> Started:'));
+
+    if (isInProgress(destColId)) {
+      // Moving to In Progress: 
+      if (existingStarted) {
+        // Keep existing Started timestamp if we have one
+        lines.push(existingStarted);
+      } else if (isTodo(sourceColId)) {
+        // Only add new Started if coming from Todo
+        lines.push(`> Started: ${now}`);
+      }
+    } else if (isDone(destColId)) {
+      // Moving to Done: 
+      if (existingStarted) {
+        lines.push(existingStarted);
+      } else {
+        lines.push(`> Started: ${now}`);
+      }
+      lines.push(`> Completed: ${now}`);
+    }
+
+    task.content = lines.join('\n').trim();
+  };
 
   const updateStateAndSave = newState => {
     setState(newState);
@@ -89,13 +148,30 @@ export default function TaskBoard({ vscode, initialData }) {
           }
 
           if (type === 'column') {
-            const newColOrd = Array.from(state.columnOrder);
-            newColOrd.splice(source.index, 1);
-            newColOrd.splice(destination.index, 0, draggableId);
+            // Find the actual index in columnOrder for the group
+            const sourceGroup = renderedColumns[source.index];
+            const destGroup = renderedColumns[destination.index];
+            
+            const sourceIndexInOrder = state.columnOrder.indexOf(sourceGroup.id);
+
+            // Move all sub-columns of the group
+            const itemsToMove = sourceGroup.subColumns ? sourceGroup.subColumns.map(c => c.id) : [sourceGroup.id];
+            
+            const tempOrder = Array.from(state.columnOrder);
+            const removed = tempOrder.splice(sourceIndexInOrder, itemsToMove.length);
+            
+            // Recalculate dest index after removal
+            let newDestIndex = tempOrder.indexOf(destGroup.id);
+            if (destination.index > source.index && destGroup.subColumns) {
+                newDestIndex += destGroup.subColumns.length - 1;
+            }
+            if (destination.index > source.index) newDestIndex += 1;
+
+            tempOrder.splice(newDestIndex, 0, ...removed);
 
             const newState = {
               ...state,
-              columnOrder: newColOrd
+              columnOrder: tempOrder
             };
             updateStateAndSave(newState);
             return;
@@ -131,6 +207,7 @@ export default function TaskBoard({ vscode, initialData }) {
             updateStateAndSave(newState);
             return;
           }
+          
           const startTaskIds = Array.from(startcol.taskIds);
           startTaskIds.splice(source.index, 1);
           const newStart = {
@@ -143,83 +220,116 @@ export default function TaskBoard({ vscode, initialData }) {
             ...endcol,
             taskIds: endTaskIds
           };
+
+          const taskToUpdate = state.tasks[draggableId];
+          updateTaskTimestamps(taskToUpdate, startcol.id, endcol.id);
+
           const newState = {
             ...state,
             columns: {
               ...state.columns,
               [newStart.id]: newStart,
               [newEnd.id]: newEnd
-            },
-            tasks: data.tasks
+            }
           };
-          // setState(newState);
           updateStateAndSave(newState);
-          // loadData(vscode, getMarkdown(newState)) // reload data to make sure it's reliable.
+          return;
         }}
       >
         <Droppable droppableId="columns" direction="horizontal" type="column">
           {provided => (
             <Columns {...provided.droppableProps} ref={provided.innerRef}>
-              {state.columnOrder.map((id, idx) => {
-                const col = state.columns[id];
-                if (idx === Object.keys(state.columns).length - 1) {
-                  col.isLast = true;
-                } else {
-                  col.isLast = false;
-                }
-                const tasks = col.taskIds.map(taskid => state.tasks[taskid]);
+              {renderedColumns.map((group, idx) => {
+                const isLast = idx === renderedColumns.length - 1;
+                // If it's a group, we pass the group info
                 return (
                   <TaskColumn
-                    key={id}
-                    column={col}
+                    key={group.id}
+                    column={group}
                     columnIndex={idx}
-                    tasks={tasks}
+                    isLast={isLast}
+                    allTasks={state.tasks} // Pass all tasks to the column
                     onChangeTask={(id: string, newTask: TaskInterface) => {
-                      tasks[id] = newTask;
                       const newState = {
                         ...state,
-                        tasks: data.tasks
+                        tasks: {
+                            ...state.tasks,
+                            [id]: newTask
+                        }
                       };
                       updateStateAndSave(newState);
                     }}
-                    onDeleteTask={(task: TaskInterface, column: ColumnInterface) => {
+                    onDeleteTask={(task: TaskInterface, columnId: string) => {
                       const newState = { ...state };
                       delete newState.tasks[task.id];
-                      newState.columns[column.id].taskIds = newState.columns[column.id].taskIds.filter(
+                      newState.columns[columnId].taskIds = newState.columns[columnId].taskIds.filter(
                         (taskId: string) => taskId !== task.id
                       );
                       updateStateAndSave(newState);
                     }}
-                    onInProgressTask={(task: TaskInterface, column: ColumnInterface) => {
+                    onInProgressTask={(task: TaskInterface, columnId: string) => {
                       const newState = { ...state };
                       const columnKeys = Object.keys(newState.columns);
                       const currentColumnIdx = Object.keys(newState.columns).findIndex(
-                        (id: string) => id === column.id
+                        (id: string) => id === columnId
                       );
                       const doneColumnKey = columnKeys[columnKeys.length - 1];
                       const nextColumnKey = columnKeys[currentColumnIdx + 1];
+                      
+                      updateTaskTimestamps(task, columnId, nextColumnKey);
+
                       if (nextColumnKey === doneColumnKey) {
                         task.done = true; // user moved this task to the right column and reached Done Column.
                       }
                       // remove task from current column:
-                      newState.columns[column.id].taskIds = newState.columns[column.id].taskIds.filter(
+                      newState.columns[columnId].taskIds = newState.columns[columnId].taskIds.filter(
                         (taskId: string) => taskId !== task.id
                       );
                       // append task to the next column:
                       newState.columns[nextColumnKey].taskIds.unshift(task.id);
                       updateStateAndSave(newState);
                     }}
-                    onCompleteTask={(task: TaskInterface, column: ColumnInterface) => {
+                    onCompleteTask={(task: TaskInterface, columnId: string) => {
                       task.done = true;
                       const newState = { ...state };
                       const columnKeys = Object.keys(newState.columns);
                       const doneColumnKey = columnKeys[columnKeys.length - 1];
+                      
+                      updateTaskTimestamps(task, columnId, doneColumnKey);
+
                       // remove task from current column:
-                      newState.columns[column.id].taskIds = newState.columns[column.id].taskIds.filter(
+                      newState.columns[columnId].taskIds = newState.columns[columnId].taskIds.filter(
                         (taskId: string) => taskId !== task.id
                       );
                       // append task to the top of Done column:
                       newState.columns[doneColumnKey].taskIds.unshift(task.id);
+                      updateStateAndSave(newState);
+                    }}
+                    onMoveTask={(taskId: string, sourceColId: string, destColId: string, destIndex: number) => {
+                      const newState = { ...state };
+                      
+                      // Remove from source
+                      const sourceCol = newState.columns[sourceColId];
+                      const newSourceTaskIds = Array.from(sourceCol.taskIds);
+                      const taskIdx = newSourceTaskIds.indexOf(taskId);
+                      newSourceTaskIds.splice(taskIdx, 1);
+                      newState.columns[sourceColId] = {
+                        ...sourceCol,
+                        taskIds: newSourceTaskIds
+                      };
+                      
+                      // Add to dest
+                      const destCol = newState.columns[destColId];
+                      const newDestTaskIds = Array.from(destCol.taskIds);
+                      newDestTaskIds.splice(destIndex, 0, taskId);
+                      newState.columns[destColId] = {
+                        ...destCol,
+                        taskIds: newDestTaskIds
+                      };
+
+                      const taskToMove = newState.tasks[taskId];
+                      updateTaskTimestamps(taskToMove, sourceColId, destColId);
+                      
                       updateStateAndSave(newState);
                     }}
                   />

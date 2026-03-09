@@ -1,23 +1,28 @@
-# Todo Kanban Board
+# AK74: TODO.md Kanban Task Board
 
-Todo Kanban Board manages tasks and save them as [TODO.md](https://bit.ly/2JdEuET) - a simple plain text file.
+AK74 is a collection of tools that help developers program efficiently.
+
+> **Note:** This is a fork of the original [Coddx](https://github.com/coddx-hq/coddx-alpha) project, enhanced with multi-line tasks, categories, automated timestamps, and a modern UI.
+
+AK74 manages tasks and save them as [TODO.md](https://bit.ly/2JdEuET) - a simple plain text file.
 
 ## Features
 
-- The syntax is compatible with [Github Markdown](https://bit.ly/2wBp1Mk)
-- TODO.md file is portable and can be committed with Pull Requests (PRs) to git repositories.
-- Support custom file name, multiple task lists.
-- Checkboxes are optional (if your task titles don't have them).
-- Task title can also have markdown for styling, hyperlinks, simple html or even img tags.
-- Task menu: to insert a sub-task, emoji icons (like bug 🐞 blocked ❌ party 🎉 etc.).
-- See also: <a href="https://bit.ly/2SfcKaH">Documentation / Guides</a>
+- **Multi-line Tasks:** Support for tasks spanning multiple lines.
+- **Categories:** Use `category:` prefix for automatic color-coding.
+- **Timestamps:** Automated `Added:`, `Started:`, and `Completed:` timestamps.
+- **Kanban Interface:** Drag and drop tasks between columns.
+- **Markdown Compatible:** The syntax is compatible with [Github Markdown](https://bit.ly/2wBp1Mk).
+- **Portable:** TODO.md file is portable and can be committed with Pull Requests (PRs).
+- **Customizable:** Support custom file name, multiple task lists.
+- **Rich Title:** Task title can also have markdown for styling, hyperlinks, simple html or even img tags.
 
 ## Usage:
 
-- Open Coddx Task Board:
-  - Bring up the Command Palette (F1), type and select: Coddx: Task Board.
+- Open AK74 Task Board:
+  - Bring up the Command Palette (F1), type and select: **AK74: TODO.md Kanban Task Board**.
 - When interacting with the Task Board, TODO.md will be created or updated automatically.
-- Vice versa, TODO.md can be edited manually, Task Board will load it every time (click the Refresh icon).
+- Vice versa, TODO.md can be edited manually, Task Board will load it every time (click the Refresh icon or Save the file).
 
 <img src="docs/media/task-board-demo.gif" />
 
@@ -27,11 +32,9 @@ Todo Kanban Board manages tasks and save them as [TODO.md](https://bit.ly/2JdEuE
 
 ## Support
 
-- For Feedbacks, Bug Reports: https://github.com/coddx-hq/coddx-alpha/issues
-- Documentation: <a href="https://bit.ly/2SfcKaH">Documentation / Guides</a>
-- <a href="https://bit.ly/2y4fgqh">CHANGELOG</a>
+- For Feedbacks, Bug Reports: https://github.com/AdamKeher/coddx-alpha/issues
+- <a href="https://github.com/AdamKeher/coddx-alpha/blob/master/CHANGELOG.md">CHANGELOG</a>
 
-## Next milestone:
+## Credits:
 
-- Feedbacks, suggestions or ideas are welcome! Thanks.
-- Check out [TODO.md](TODO.md)
+Original project by [Coddx](https://github.com/coddx-hq/coddx-alpha).
