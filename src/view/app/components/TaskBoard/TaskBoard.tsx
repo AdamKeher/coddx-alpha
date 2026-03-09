@@ -27,9 +27,35 @@ let data = parseMarkdown(dataString);
 
 export default function TaskBoard({ vscode, initialData }) {
   const [state, setState] = useState(data);
+  const [currentSelectedFile, setCurrentSelectedFile] = useState(selectedFile);
+  const [currentFileList, setCurrentFileList] = useState(fileArray);
   const vscodeHelper = getVscodeHelper(vscode);
 
-  const reloadFile = () => sendCommand(vscode, CommandAction.Load, selectedFile);
+  React.useEffect(() => {
+    const handleMessage = (event) => {
+      const message = event.data;
+      switch (message.action) {
+        case 'init':
+          const initData = parseMarkdown(message.payload.dataString);
+          setState(initData);
+          setCurrentSelectedFile(message.payload.selectedFile);
+          setCurrentFileList(message.payload.fileList.split(',').map(str => str.trim()));
+          break;
+        case 'updateData':
+          const updatedData = parseMarkdown(message.dataString);
+          setState(updatedData);
+          if (message.selectedFile) {
+            setCurrentSelectedFile(message.selectedFile);
+          }
+          break;
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
+
+  const reloadFile = () => sendCommand(vscode, CommandAction.Load, currentSelectedFile);
 
   const renderedColumns = [];
   let currentGroup = null;
@@ -53,10 +79,6 @@ export default function TaskBoard({ vscode, initialData }) {
       renderedColumns.push({ ...col, isGroup: false });
     }
   });
-
-  React.useEffect(() => {
-    reloadFile();
-  }, []);
 
   const updateTaskTimestamps = (task: TaskInterface, sourceColId: string, destColId: string) => {
     const now = new Date().toLocaleString();
@@ -99,21 +121,12 @@ export default function TaskBoard({ vscode, initialData }) {
     vscodeHelper.saveList(getMarkdown(newState));
   };
 
-  // const [msg, setMsg] = useState('');
-  // window.addEventListener('message', event => {
-  //   setMsg(JSON.stringify(event));
-  //   // const message = event.data; // The JSON data our extension sent
-  //   // switch (message.command) {
-  //   //     case 'load':
-  //   //       break;
-  //   // }
-  // });
   return (
     <div>
       <ButtonBar
         vscodeHelper={vscodeHelper}
-        fileArray={fileArray}
-        selectedFile={selectedFile}
+        fileArray={currentFileList}
+        selectedFile={currentSelectedFile}
         data={state}
         onLoadData={newData => {
           data = newData;

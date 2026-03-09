@@ -13,44 +13,21 @@ AK74 manages tasks and save them as TODO.md.
 ### Done ✓
 
 `;
-// export const defaultDataString = `# Project Name
-
-// Project Description
-
-// <em>[TODO.md spec & Kanban Board](https://bit.ly/3fCwKfM)</em>
-
-// ### Todo
-
-// - [ ] Build Launch Pad
-// - [ ] Launch time 🎉
-//   - [ ] Prepare for launching
-//   - [ ] Detail description
-
-// ### In Progress
-
-// - [ ] Build the rocket engine
-
-// ### Done ✓
-
-// - [x] Designed my rocket
-// `;
 
 const isDoneColumn = (columnName: string) => {
   if (!columnName) {
     return false;
   }
   const lowerColName = columnName.toLowerCase();
-  if (lowerColName.indexOf('[x]') > 0 || lowerColName.indexOf('✓') > 0) {
-    return true;
-  }
-  return false;
+  return lowerColName.indexOf('[x]') >= 0 || lowerColName.indexOf('✓') >= 0 || lowerColName.indexOf('done') >= 0;
 };
 
 export function getMarkdown(data) {
   let md = '';
-  // loop through "columns", then column.taskIds => write to lines
-  for (const colKey in data.columns) {
+  for (const colKey of data.columnOrder) {
     const col = data.columns[colKey];
+    if (!col) continue;
+
     md += '### ' + col.title + '\n\n';
 
     let checkboxStr = '[ ] ';
@@ -71,81 +48,68 @@ export function getMarkdown(data) {
         if (index === 0) {
           md += indent + '- ' + (task.hasCheckbox === false ? '' : checkboxStr) + line + '  \n';
         } else {
-          // for multi-line tasks, indent the subsequent lines
           md += indent + '  ' + line + '  \n';
         }
       });
     });
     md += '\n';
   }
-  md = data.precontent + md; // prepend "data.precontent"
-  return md;
+  return (data.precontent || '') + md;
 }
 
-// parse TODO.md content (markdown), return object { tasks: {}, ... } - see "output":
 export function parseMarkdown(md: string) {
   const output = {
     projectName: '',
-    precontent: '', // description content before the Lists.
+    precontent: '',
     tasks: {},
     columns: {},
     columnOrder: []
   };
+
+  if (!md) return output;
+
   let lastColName = '';
   const lines = md.split('\n');
   let taskNum = 0;
   let currentTask: TaskInterface | null = null;
-
-  let listFound = false; // found after '### '
+  let listFound = false;
 
   lines.forEach(line => {
-    if (line.indexOf('### ') === 0) {
+    if (line.startsWith('### ')) {
       listFound = true;
       lastColName = line.replace('### ', '').trim();
-      output.columns[lastColName] = {
-        id: lastColName.trim(),
-        title: lastColName.trim(),
-        taskIds: []
-      };
-      output.columnOrder.push(lastColName);
+      if (!output.columns[lastColName]) {
+        output.columns[lastColName] = {
+          id: lastColName,
+          title: lastColName,
+          taskIds: []
+        };
+        output.columnOrder.push(lastColName);
+      }
       currentTask = null;
       return;
     }
 
-    if (listFound === false) {
-      if (line.indexOf('# ') === 0) {
+    if (!listFound) {
+      if (line.startsWith('# ')) {
         output.projectName = line.replace('# ', '').trim();
       }
-      output.precontent += line + '\n'; // append to precontent
+      output.precontent += line + '\n';
       return;
     }
 
-    // Check if it's a new task
-    const isNewTask = line.trim().indexOf('- ') === 0 || line.trim().indexOf('* ') === 0;
+    const trimmedLine = line.trim();
+    const isNewTask = trimmedLine.startsWith('- ') || trimmedLine.startsWith('* ');
     
     if (isNewTask) {
       taskNum++;
       const id = `task${taskNum}`;
-      const hasCheckbox = line.indexOf('[ ]') >= 0 || line.indexOf('[x]') >= 0;
-      const level = line.indexOf('  - ') === 0 || line.indexOf('  * ') === 0 ? 1 : 0;
-      let title = line
-        .replace('  - [ ] ', '')
-        .replace('  - [x] ', '')
-        .replace('  - ', '')
-        .replace('- [ ] ', '')
-        .replace('- [x] ', '')
-        .replace('  * [ ] ', '')
-        .replace('  * [x] ', '')
-        .replace('  * ', '')
-        .replace('* [ ] ', '')
-        .replace('* [x] ', '')
-        .trim();
+      const hasCheckbox = line.includes('[ ]') || line.includes('[x]');
+      const level = line.startsWith('  - ') || line.startsWith('  * ') ? 1 : 0;
       
-      if (title.indexOf('- ') === 0) {
-        title = title.slice(2);
-      } else if (title.indexOf('* ') === 0) {
-        title = title.slice(2);
-      }
+      let title = line
+        .replace(/^(\s*[-*]\s*(\[[ xX]\])?\s*)/, '')
+        .trim();
 
       const task: TaskInterface = {
         id,
@@ -155,18 +119,18 @@ export function parseMarkdown(md: string) {
         level
       };
       
-      // Extract category
       const categoryMatch = title.match(/^([^:\s]+):/);
       if (categoryMatch) {
         task.category = categoryMatch[1];
       }
 
       output.tasks[id] = task;
-      output.columns[lastColName].taskIds.push(id);
+      if (lastColName && output.columns[lastColName]) {
+        output.columns[lastColName].taskIds.push(id);
+      }
       currentTask = task;
-    } else if (currentTask) {
-      // Append to current task (multi-line)
-      currentTask.content += '\n' + line.trim();
+    } else if (currentTask && trimmedLine) {
+      currentTask.content += '\n' + trimmedLine;
     }
   });
   

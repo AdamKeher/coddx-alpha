@@ -95,9 +95,15 @@ export default ({
   });
   fileOptions.push({ value: 'ADD', label: '＋ Add file...' });
 
-  const selectedOpt = fileOptions.find(opt => opt.value === selectedFile);
+  const selectedOpt = fileOptions.find(opt => opt.value === selectedFile) || fileOptions[0];
   const [selectValue, setSelectValue] = React.useState(selectedOpt);
   const [searchActive, setSearchActive] = React.useState(false);
+
+  React.useEffect(() => {
+    const opt = fileOptions.find(opt => opt.value === selectedFile) || fileOptions[0];
+    setSelectValue(opt);
+  }, [selectedFile, fileArray]);
+
   return (
     <div>
       <div style={{ display: 'flex' }}>

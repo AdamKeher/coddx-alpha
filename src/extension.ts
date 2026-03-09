@@ -3,7 +3,7 @@
 import * as vscode from 'vscode';
 // import { telemetry } from './view/app/Utils';
 
-import ViewLoader from './view/ViewLoader';
+import CodeGenLoader from './view/ViewLoader';
 import TaskBoardLoader from './view/TaskBoardLoader';
 
 // this method is called when your extension is activated
@@ -31,16 +31,17 @@ export function activate(context: vscode.ExtensionContext) {
     //   .showOpenDialog(openDialogOptions)
     //   .then(async (uri: vscode.Uri[] | undefined) => {
     //     if (uri && uri.length > 0) {
-    //       const view = new ViewLoader(uri[0], context.extensionPath);
+    //       const view = new CodeGenLoader(uri[0], context.extensionPath);
     //     } else {
     //       vscode.window.showErrorMessage("No valid file selected!");
     //       return;
     //     }
     //   });
-    const view = new ViewLoader(context.extensionPath, uri);
+    const view = new CodeGenLoader(context.extensionPath, uri);
     // telemetry.sendTelemetryEvent('init-file-generator');
     return view;
   });
+
   context.subscriptions.push(disposable);
 
   let taskBoardCmd = vscode.commands.registerCommand('extension.taskboard', (uri: vscode.Uri) => {
