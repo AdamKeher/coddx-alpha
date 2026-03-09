@@ -57,7 +57,7 @@ export default class TaskBoardLoader {
 
     this._panel.webview.html = this.getWebviewContent({
       basePath,
-      templateString: todoStr.replace(/`/g, '\\`').replace(/\$/g, '\\$'),
+      templateString: todoStr,
       fileList,
       selectedFile: this._selectedFile,
       rootPath
