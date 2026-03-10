@@ -63,7 +63,7 @@ export function getMarkdown(data) {
         return;
       }
       const indent = '  '.repeat(task.level || 0);
-      const content = task.content.trim();
+      const content = (task.content || '').trim();
       const lines = content.split('\n');
       
       lines.forEach((line, index) => {
@@ -150,16 +150,16 @@ export function parseMarkdown(md: string) {
     }
 
     const trimmedLine = line.trim();
-    const isNewTask = trimmedLine.startsWith('- ') || trimmedLine.startsWith('* ');
+    const isNewTask = line.match(/^(\s*)[-*]\s*\[[ xX]\]\s/);
     
     if (isNewTask) {
       taskNum++;
       const id = `task${taskNum}`;
-      const hasCheckbox = line.includes('[ ]') || line.includes('[x]');
-      const level = line.startsWith('  - ') || line.startsWith('  * ') ? 1 : 0;
+      const hasCheckbox = true;
+      const level = Math.floor(isNewTask[1].length / 2);
       
       let title = line
-        .replace(/^(\s*[-*]\s*(\[[ xX]\])?\s*)/, '')
+        .replace(/^(\s*[-*]\s*\[[ xX]\]\s*)/, '')
         .trim();
 
       const task: TaskInterface = {
@@ -178,7 +178,10 @@ export function parseMarkdown(md: string) {
       }
       currentTask = task;
     } else if (currentTask && trimmedLine) {
-      currentTask.content += '\n' + trimmedLine;
+      const baseIndent = (currentTask.level || 0) * 2 + 2;
+      // Safer indentation stripping: only strip leading spaces up to baseIndent
+      const subLine = line.replace(new RegExp(`^\\s{0,${baseIndent}}`), '').replace(/\s\s$/, '');
+      currentTask.content += '\n' + subLine;
     }
   });
   

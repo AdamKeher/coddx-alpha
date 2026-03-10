@@ -465,13 +465,25 @@ export default memo(
 
     const toggleSubtask = (lineIdx: number) => {
       const lines = [...contentLines];
-      const line = lines[lineIdx];
-      if (line.includes('( )')) {
-        lines[lineIdx] = line.replace('( )', '(x)');
-      } else if (line.includes('(x)')) {
-        lines[lineIdx] = line.replace('(x)', '( )');
+      let line = lines[lineIdx];
+      
+      const checkboxRegex = /^(\s*)(?:\(( |x)\)|\[( |x)\])(.*)$/i;
+      const match = line.match(checkboxRegex);
+      
+      if (match) {
+        const indent = match[1];
+        const isParens = line.trim().startsWith('(');
+        const currentStatus = match[2] || match[3];
+        const rest = match[4];
+        
+        const newStatus = currentStatus.toLowerCase() === 'x' ? ' ' : 'x';
+        if (isParens) {
+          lines[lineIdx] = `${indent}(${newStatus})${rest}`;
+        } else {
+          lines[lineIdx] = `${indent}[${newStatus}]${rest}`;
+        }
+        onChangeTask(task.id, { ...task, content: lines.join('\n') });
       }
-      onChangeTask(task.id, { ...task, content: lines.join('\n') });
     };
 
     const handleKeyDown = (ev: React.KeyboardEvent) => {
@@ -559,7 +571,19 @@ export default memo(
                       key={mainKey}
                       ref={inputRef}
                       onKeyDown={ev => {
-                        if (ev.keyCode === 13 && !ev.shiftKey) {
+                        if (ev.keyCode === 9) { // Tab
+                          ev.preventDefault();
+                          const start = ev.currentTarget.selectionStart;
+                          const end = ev.currentTarget.selectionEnd;
+                          const value = ev.currentTarget.value;
+                          const newValue = value.substring(0, start) + '\t' + value.substring(end);
+                          
+                          // Update the value and cursor position
+                          ev.currentTarget.value = newValue;
+                          ev.currentTarget.selectionStart = ev.currentTarget.selectionEnd = start + 1;
+                          
+                          onChangeTitle(newValue);
+                        } else if (ev.keyCode === 13 && !ev.shiftKey) {
                           ev.preventDefault(); // Enter (without Shift) finishes editing
                           setIsEditing(false);
                         }
@@ -596,25 +620,60 @@ export default memo(
                   <DescriptionContainer isCollapsed={isCollapsed}>
                     {contentLines.slice(1).map((line, idx) => {
                       const lineIdx = idx + 1;
-                      const isChecklist = line.includes('( )') || line.includes('(x)');
-                      const isChecked = line.includes('(x)');
                       const timestampLine = line.startsWith('> Started:') || line.startsWith('> Completed:');
-
                       if (timestampLine) return null;
 
-                      return (
-                        <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', margin: '4px 0' }}>
-                          {isChecklist && (
+                      // Regex for checkbox: leading spaces, then ( ) or (x) or [ ] or [x]
+                      const checkboxMatch = line.match(/^(\s*)(?:\(([ x])\)|\[([ x])\])\s*(.*)$/i);
+                      // Regex for bullet: leading spaces, then * or - or + or :
+                      const bulletMatch = line.match(/^(\s*)(?:[*+-])\s+(.*)$/);
+
+                      if (checkboxMatch) {
+                        const indent = checkboxMatch[1];
+                        const isChecked = (checkboxMatch[2] || checkboxMatch[3]).toLowerCase() === 'x';
+                        const text = checkboxMatch[4];
+                        const indentLevel = indent.length;
+
+                        return (
+                          <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', margin: '4px 0', marginLeft: indentLevel * 10 }}>
                             <CheckboxIcon 
                               checked={isChecked} 
                               onClick={(e) => { e.stopPropagation(); toggleSubtask(lineIdx); }}
                             >
-                              <i className={`far fa-${isChecked ? 'dot-circle' : 'circle'}`} />
+                              <i className={`far fa-${isChecked ? 'check-square' : 'square'}`} />
                             </CheckboxIcon>
-                          )}
+                            <span 
+                              dangerouslySetInnerHTML={{ __html: parseInline(text) }}
+                            />
+                          </div>
+                        );
+                      }
+
+                      if (bulletMatch) {
+                        const indent = bulletMatch[1];
+                        const text = bulletMatch[2];
+                        const indentLevel = indent.length;
+
+                        return (
+                          <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', margin: '4px 0', marginLeft: indentLevel * 10 }}>
+                            <span style={{ marginRight: '8px', opacity: 0.7, minWidth: '12px', textAlign: 'center' }}>•</span>
+                            <span 
+                              dangerouslySetInnerHTML={{ __html: parseInline(text) }}
+                            />
+                          </div>
+                        );
+                      }
+
+                      // Default line
+                      const indentMatch = line.match(/^(\s*)(.*)$/);
+                      const indent = indentMatch ? indentMatch[1] : '';
+                      const text = indentMatch ? indentMatch[2] : line;
+
+                      return (
+                        <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', margin: '4px 0', marginLeft: indent.length * 10 }}>
                           <span 
-                            style={{ opacity: timestampLine ? 0.6 : 1, fontStyle: timestampLine ? 'italic' : 'normal' }}
-                            dangerouslySetInnerHTML={{ __html: parseInline(line.replace(/\([ x]\)/, '').trim()) }}
+                            style={{ opacity: 1 }}
+                            dangerouslySetInnerHTML={{ __html: parseInline(text) }}
                           />
                         </div>
                       );

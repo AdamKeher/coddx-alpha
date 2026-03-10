@@ -6,19 +6,21 @@ Project Description
 
 ### Todo
 
-- [ ] feat: add spelling and grammar checking when editing a task  
-- [ ] docs: update docs with new screen captures, capabilities list and .mov file  
-- [ ] ui: add hyperlinks  
+- [ ] feat: add spelling and grammar checking when editing a task
+- [ ] docs: update docs with new screen captures, capabilities list and .mov
+- [ ] ui: add hyperlinks
 
 ### In Progress
 
-- [ ] Add nested checkbox support to sub task items    
-  Enable rendering and toggling of checkboxes inside subtask lists.  
-- [ ] Convert `*` entries to bulleted lists in tasks    
-  Ensure nested entries are supported  
 
 ### Done ✓
 
+- [x] task: make * entries bulleted lists within tasks. Support nested entries.  
+  > Started: 3/10/2026, 5:35:54 PM  
+  > Completed: 3/10/2026, 5:35:59 PM  
+- [x] task: add nested checkbox support to ( ) sub task items  
+  > Started: 3/10/2026, 5:35:57 PM  
+  > Completed: 3/10/2026, 5:35:58 PM  
 - [x] feat: Add a Magic Button (✨) to provide an interactive, inline assistant for refining task content.  
   Its goals are:  
   ( ) One-Click Optimization: Provide a single entry point on every task card to trigger a professional rewrite of the task's  
@@ -51,6 +53,7 @@ Project Description
   sending it to the model.  
   > Started: 3/10/2026, 5:08:11 PM  
   > Completed: 3/10/2026, 5:08:11 PM  
+  sending it to the model.  
 - [x] ui: fix persistence of collapsed state for category columns, sub-categories and tasks. the state of these should persist when the Task Board is closed and reopened.  
   > Started: 3/10/2026, 11:44:37 AM  
   > Completed: 3/10/2026, 12:41:41 PM  
