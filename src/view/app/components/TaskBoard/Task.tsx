@@ -403,8 +403,8 @@ export default memo(
               }
             }}
           >
-            <PrioritySidebar priority={task.priority} isBug={task.isBug}>
-              <Handle {...provided.dragHandleProps}>
+            <PrioritySidebar priority={task.priority} isBug={task.isBug} {...provided.dragHandleProps}>
+              <Handle>
                 <DragIcon />
               </Handle>
               {task.priority && (

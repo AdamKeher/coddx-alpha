@@ -6,10 +6,15 @@ Project Description
 
 ### Todo
 
+- [ ] feat: add spelling and grammar checking when editing a task  
 - [ ] docs: update docs with new screen captures, capabilities list and .mov file  
 - [ ] ui: add hyperlinks  
-- [ ] ui: fix header icons for Done (ticks) and Archived (folder/file) tasks.  
-- [ ] ui: fix persistence of collapsed state for category columns, sub-categories and tasks  
+- [ ] ui: Tasks should have an icon left of the Header text indicating their current status based on which column they are in.  
+  1. When a task is in the "Todo" column the task should have a "unchecked box" icon in the header  
+  2. When a task is in the "In Progress" column the task should have a "unchecked" icon in the the header.  
+  3. When a task is in the "Done" column the task should have a "ticked checkbox" icon in the header.  
+  4. When a task is in the "Archived" column the tasks should have a (folder/file) icon in the header.  
+- [ ] ui: fix persistence of collapsed state for category columns, sub-categories and tasks. the state of these should persist when the Task Board is closed and reopened.  
 
 ### In Progress
 

@@ -72,7 +72,7 @@ const List = styled.div<{ isDraggingOver: boolean; isCollapsed?: boolean }>`
   `}
 `;
 
-const SubTitle = styled.div`
+const SubTitle = styled.div<{ isGeneral?: boolean }>`
   padding: 4px 8px;
   margin: 4px 5px 0 5px;
   font-size: 1em;
@@ -83,13 +83,13 @@ const SubTitle = styled.div`
   color: var(--vscode-editor-selectionForeground);
   border-left: 3px solid var(--vscode-editor-selectionBackground);
   background-color: rgba(255, 255, 255, 0.05);
-  cursor: grab;
+  cursor: ${props => props.isGeneral ? 'not-allowed' : 'grab'};
   display: flex;
   align-items: center;
   justify-content: space-between;
 
   &:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: ${props => props.isGeneral ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.1)'};
   }
 
   .toggle-icon {
@@ -188,14 +188,15 @@ export default memo(
                         const taskIds = subCol['taskIds'] || [];
                         const tasks = taskIds.map(taskId => allTasks[taskId]);
                         let displayTitle = subCol.title.replace(column.title, '').replace(/^\s*-\s*/, '').trim();
-                        if (!displayTitle) {
+                        const isGeneral = !displayTitle;
+                        if (isGeneral) {
                           displayTitle = "General";
                         }
                         
                         const isCollapsed = collapsedSections.includes(subCol.id);
 
                         return (
-                          <Draggable key={subCol.id} draggableId={subCol.id} index={subIdx}>
+                          <Draggable key={subCol.id} draggableId={subCol.id} index={subIdx} isDragDisabled={isGeneral}>
                             {(provided, snapshot) => (
                               <div
                                 ref={provided.innerRef}
@@ -205,7 +206,7 @@ export default memo(
                                   opacity: snapshot.isDragging ? 0.5 : 1
                                 }}
                               >
-                                <SubTitle {...provided.dragHandleProps}>
+                                <SubTitle {...provided.dragHandleProps} isGeneral={isGeneral}>
                                   <span>{displayTitle}</span>
                                   <span 
                                     className="toggle-icon" 
