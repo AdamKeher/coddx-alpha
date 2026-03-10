@@ -12,13 +12,18 @@ Project Description
 
 ### In Progress
 
-- [ ] feat: add a icon for the Task Board to the Activity Bar in VSCODE. Include a badge for the number of "In Progress" items.  
-  > Started: 3/10/2026, 5:44:09 PM  
-- [ ] !bug tasks: when using the right button for tasks in the Todo column, when there are sub-categories below the task, it seems to move the task down down a sub-category rather than across to the InProgress column.  
-  > Started: 3/10/2026, 5:43:44 PM  
 
 ### Done ✓
 
+- [x] feat: when a task is moved from the Todo column, record the source sub-category with a "> Sub-Category: <Sub-Category Name>" tag, similar to dates. When a task is moved back to the todo column, use this sub-category name tag to identify where it should be placed. Create the sub-category if it no longer exists.  
+  > Started: 3/10/2026, 10:15:26 PM  
+  > Completed: 3/10/2026, 10:45:00 PM  
+- [x] !bug tasks: when using the right button for tasks in the Todo column, when there are sub-categories below the task, it seems to move the task down down a sub-category rather than across to the InProgress column.  
+  > Started: 3/10/2026, 5:43:44 PM  
+  > Completed: 3/10/2026, 10:15:23 PM  
+- [x] feat: add a icon for the Task Board to the Activity Bar in VSCODE. Include a badge for the number of "In Progress" items.  
+  > Started: 3/10/2026, 5:44:09 PM  
+  > Completed: 3/10/2026, 10:15:14 PM  
 - [x] task: make * entries bulleted lists within tasks. Support nested entries.  
   > Started: 3/10/2026, 5:35:54 PM  
   > Completed: 3/10/2026, 5:35:59 PM  
@@ -77,5 +82,3 @@ Project Description
   > Completed: 3/10/2026, 11:40:03 AM  
 
 ### Archived
-
-

@@ -134,6 +134,17 @@ export default function TaskBoard({ vscode, initialData }) {
     let lines = task.content.split('\n');
     lines = lines.filter(line => !line.startsWith('> Started:') && !line.startsWith('> Completed:') && !line.startsWith('> Added:'));
     
+    // Handle Sub-Category tag
+    if (isTodo(sourceColId) && !isTodo(destColId)) {
+      // Moving FROM Todo TO something else: Record source sub-category
+      // Filter out any existing sub-category tag first
+      lines = lines.filter(line => !line.startsWith('> Sub-Category:'));
+      lines.push(`> Sub-Category: ${sourceColId}`);
+    } else if (isTodo(destColId)) {
+      // Moving TO Todo: Remove sub-category tag
+      lines = lines.filter(line => !line.startsWith('> Sub-Category:'));
+    }
+
     // If it already had a Started timestamp, we need to decide whether to keep it
     const originalLines = task.content.split('\n');
     const existingStarted = originalLines.find(l => l.startsWith('> Started:'));
@@ -393,12 +404,36 @@ export default function TaskBoard({ vscode, initialData }) {
 
                       let prevColumnIdx = currentColumnIdx - 1;
                       
-                      // If moving back TO a Todo group from a non-Todo column, go to the first Todo column
+                      // If moving back TO a Todo group from a non-Todo column, check for sub-category tag
                       if (!columnId.startsWith('Todo') && columnOrder[prevColumnIdx].startsWith('Todo')) {
-                        prevColumnIdx = columnOrder.findIndex(id => id.startsWith('Todo'));
+                        const subCatLine = task.content.split('\n').find(l => l.startsWith('> Sub-Category:'));
+                        if (subCatLine) {
+                          const targetColId = subCatLine.replace('> Sub-Category:', '').trim();
+                          if (newState.columns[targetColId]) {
+                            prevColumnIdx = newState.columnOrder.indexOf(targetColId);
+                          } else {
+                            // Create the sub-category if it no longer exists.
+                            newState.columns[targetColId] = {
+                              id: targetColId,
+                              title: targetColId,
+                              taskIds: []
+                            };
+                            // Find where to insert it in columnOrder (after the last Todo column)
+                            let lastTodoIdx = -1;
+                            for (let i = 0; i < newState.columnOrder.length; i++) {
+                              if (newState.columnOrder[i].startsWith('Todo')) {
+                                lastTodoIdx = i;
+                              }
+                            }
+                            newState.columnOrder.splice(lastTodoIdx + 1, 0, targetColId);
+                            prevColumnIdx = lastTodoIdx + 1;
+                          }
+                        } else {
+                          prevColumnIdx = columnOrder.findIndex(id => id.startsWith('Todo'));
+                        }
                       }
 
-                      const prevColumnKey = columnOrder[prevColumnIdx];
+                      const prevColumnKey = newState.columnOrder[prevColumnIdx];
                       if (!prevColumnKey) return;
 
                       updateTaskTimestamps(task, columnId, prevColumnKey);

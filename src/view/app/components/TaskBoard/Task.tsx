@@ -455,7 +455,8 @@ export default memo(
       const trimmed = line.trim();
       return trimmed.length > 0 && 
              !trimmed.startsWith('> Started:') && 
-             !trimmed.startsWith('> Completed:');
+             !trimmed.startsWith('> Completed:') &&
+             !trimmed.startsWith('> Sub-Category:');
     });
 
     let displayTitle = title;
@@ -620,8 +621,8 @@ export default memo(
                   <DescriptionContainer isCollapsed={isCollapsed}>
                     {contentLines.slice(1).map((line, idx) => {
                       const lineIdx = idx + 1;
-                      const timestampLine = line.startsWith('> Started:') || line.startsWith('> Completed:');
-                      if (timestampLine) return null;
+                      const isMetaLine = line.startsWith('> Started:') || line.startsWith('> Completed:') || line.startsWith('> Sub-Category:');
+                      if (isMetaLine) return null;
 
                       // Regex for checkbox: leading spaces, then ( ) or (x) or [ ] or [x]
                       const checkboxMatch = line.match(/^(\s*)(?:\(([ x])\)|\[([ x])\])\s*(.*)$/i);

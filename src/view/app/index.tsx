@@ -5,7 +5,6 @@ import './index.css';
 import { IConfig } from './model';
 // import Config from "./config";
 
-import MainView from './components/CodeGen/MainView';
 import TaskBoard from './components/TaskBoard/TaskBoard';
 
 declare global {
@@ -17,20 +16,10 @@ declare global {
 
 const vscode = window.acquireVsCodeApi();
 
-if (window.initialData.name === 'TaskBoard') {
-  // Sync persisted state to session state immediately if session state is empty
-  const sessionState = vscode.getState();
-  if ((!sessionState || Object.keys(sessionState).length === 0) && window.initialData.savedState) {
-    vscode.setState(window.initialData.savedState);
-  }
-
-  ReactDOM.render(
-    <TaskBoard vscode={vscode} initialData={window.initialData} />,
-    document.getElementById('root')
-  );
-} else {
-  ReactDOM.render(
-    <MainView vscode={vscode} initialData={window.initialData} />,
-    document.getElementById('root')
-  );
+// Sync persisted state to session state immediately if session state is empty
+const sessionState = vscode.getState();
+if ((!sessionState || Object.keys(sessionState).length === 0) && window.initialData.savedState) {
+  vscode.setState(window.initialData.savedState);
 }
+
+ReactDOM.render(<TaskBoard vscode={vscode} initialData={window.initialData} />, document.getElementById('root'));

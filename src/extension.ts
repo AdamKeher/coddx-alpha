@@ -3,7 +3,6 @@
 import * as vscode from 'vscode';
 // import { telemetry } from './view/app/Utils';
 
-import CodeGenLoader from './view/ViewLoader';
 import TaskBoardLoader from './view/TaskBoardLoader';
 import { TaskBoardSidebarProvider } from './view/TaskBoardSidebarProvider';
 
@@ -37,33 +36,6 @@ export function activate(context: vscode.ExtensionContext) {
   // The command has been defined in the package.json file
   // Now provide the implementation of the command with registerCommand
   // The commandId parameter must match the command field in package.json
-  let disposable = vscode.commands.registerCommand('extension.viewconfig', (uri: vscode.Uri) => {
-    // let openDialogOptions: vscode.OpenDialogOptions = {
-    //   canSelectFiles: true,
-    //   canSelectFolders: false,
-    //   canSelectMany: false,
-    //   filters: {
-    //     Json: ["json"]
-    //   }
-    // };
-
-    // vscode.window
-    //   .showOpenDialog(openDialogOptions)
-    //   .then(async (uri: vscode.Uri[] | undefined) => {
-    //     if (uri && uri.length > 0) {
-    //       const view = new CodeGenLoader(uri[0], context.extensionPath);
-    //     } else {
-    //       vscode.window.showErrorMessage("No valid file selected!");
-    //       return;
-    //     }
-    //   });
-    const view = new CodeGenLoader(context.extensionPath, uri);
-    // telemetry.sendTelemetryEvent('init-file-generator');
-    return view;
-  });
-
-  context.subscriptions.push(disposable);
-
   let taskBoardCmd = vscode.commands.registerCommand('extension.taskboard', (uri: vscode.Uri) => {
     TaskBoardLoader.createOrShow(context, uri);
   });

@@ -1,7 +1,7 @@
 {
   "name": "ak74-todo-kanban",
   "displayName": "AK74: TODO.md Kanban Task Board",
-  "description": "AK74: TODO.md Kanban Task Board - A collection of tools that help developers program efficiently. Forked from original Coddx. Some useful features like: Kanban Board to manage project tasks in TODO.md, generating multiple files from templates quickly.",
+  "description": "AK74: TODO.md Kanban Task Board - A collection of tools that help developers program efficiently. Forked from original Coddx. Kanban Board to manage project tasks in TODO.md.",
   "version": "0.4.0",
   "publisher": "ak74",
   "license": "MIT",
@@ -17,14 +17,9 @@
     "task",
     "project",
     "management",
-    "generate",
-    "generator",
-    "template",
-    "webdev",
-    "snippet",
-    "file"
+    "webdev"
   ],
-  "icon": "docs/media/logo.png",
+  "icon": "static/logo.png",
   "engines": {
     "vscode": "^1.90.0"
   },
@@ -35,7 +30,6 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:extension.viewconfig",
     "onCommand:extension.taskboard",
     "onView:ak74-taskboard-sidebar"
   ],
@@ -43,11 +37,6 @@
   "contributes": {
     "languages": [],
     "commands": [
-      {
-        "command": "extension.viewconfig",
-        "title": "Generate files",
-        "category": "AK74"
-      },
       {
         "command": "extension.taskboard",
         "title": "TODO.md Kanban Task Board",
@@ -74,9 +63,6 @@
     },
     "menus": {
       "explorer/context": [
-        {
-          "command": "extension.viewconfig"
-        }
       ]
     },
     "configuration": {
@@ -87,11 +73,6 @@
           "type": "string",
           "default": "TODO.md",
           "description": "List of markdown files to show in Task Board (comma separated)."
-        },
-        "ak74.generateFiles.template": {
-          "type": "string",
-          "default": ".ak74-template",
-          "description": "The template file name."
         }
       }
     }
@@ -104,7 +85,6 @@
     "compile:views": "set NODE_OPTIONS=--openssl-legacy-provider && webpack --mode development",
     "watch:extension": "tsc --jsx react -watch -p ./",
     "watch:views": "webpack --watch --mode development",
-    "postinstall": "node ./node_modules/vscode/bin/install",
     "test": "npm run compile && node ./node_modules/vscode/bin/test"
   },
   "devDependencies": {
@@ -113,26 +93,24 @@
     "@types/node": "^10.12.21",
     "@types/react": "^16.9.0",
     "@types/react-dom": "^16.9.0",
+    "@types/vscode": "^1.90.0",
     "css-loader": "^3.0.0",
     "npm-run-all": "^4.1.5",
     "style-loader": "^0.23.1",
     "ts-loader": "^6.0.4",
     "tslint": "^5.12.1",
-    "typescript": "^3.3.1",
-    "vscode": "^1.1.37",
+    "typescript": "^5.4.5",
     "webpack": "^4.35.2",
     "webpack-cli": "^3.3.5"
   },
   "dependencies": {
     "marked": "^2.0.4",
-    "nunjucks": "^3.2.0",
     "prismjs": "^1.19.0",
     "react": "^16.13.0",
     "react-autosize-textarea": "^7.0.0",
     "react-beautiful-dnd": "^13.0.0",
     "react-dom": "^16.13.0",
     "react-select": "^3.1.0",
-    "react-simple-code-editor": "^0.11.0",
     "styled-components": "^5.0.1"
   }
 }

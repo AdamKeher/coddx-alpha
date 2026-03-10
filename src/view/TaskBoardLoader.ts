@@ -134,18 +134,17 @@ export default class TaskBoardLoader {
                   result += chunk;
                 }
                 this._panel.webview.postMessage({
-                  action: 'aiRefineResponse',
-                  taskId,
-                  result: result.trim()
-                });
-              } catch (err: any) {
-                this._panel.webview.postMessage({
-                  action: 'aiRefineResponse',
-                  taskId,
-                  error: err?.message || 'AI refinement failed.'
-                });
-              }
-            })();
+                    action: 'aiRefineResponse',
+                    taskId,
+                    result: result.trim()
+                  });
+                } catch (err: any) {
+                  this._panel.webview.postMessage({
+                    action: 'aiRefineResponse',
+                    taskId,
+                    error: (err as Error)?.message || 'AI refinement failed.'
+                  });
+                }            })();
             break;
         }
       },
