@@ -386,10 +386,19 @@ export default function TaskBoard({ vscode, initialData }) {
                     }}
                     onBackwardsTask={(task: TaskInterface, columnId: string) => {
                       const newState = { ...state };
-                      const columnKeys = Object.keys(newState.columns);
-                      const currentColumnIdx = columnKeys.indexOf(columnId);
-                      const prevColumnKey = columnKeys[currentColumnIdx - 1];
+                      const columnOrder = newState.columnOrder;
+                      const currentColumnIdx = columnOrder.indexOf(columnId);
                       
+                      if (currentColumnIdx <= 0) return;
+
+                      let prevColumnIdx = currentColumnIdx - 1;
+                      
+                      // If moving back TO a Todo group from a non-Todo column, go to the first Todo column
+                      if (!columnId.startsWith('Todo') && columnOrder[prevColumnIdx].startsWith('Todo')) {
+                        prevColumnIdx = columnOrder.findIndex(id => id.startsWith('Todo'));
+                      }
+
+                      const prevColumnKey = columnOrder[prevColumnIdx];
                       if (!prevColumnKey) return;
 
                       updateTaskTimestamps(task, columnId, prevColumnKey);
@@ -404,12 +413,24 @@ export default function TaskBoard({ vscode, initialData }) {
                     }}
                     onInProgressTask={(task: TaskInterface, columnId: string) => {
                       const newState = { ...state };
-                      const columnKeys = Object.keys(newState.columns);
-                      const currentColumnIdx = Object.keys(newState.columns).findIndex(
-                        (id: string) => id === columnId
-                      );
-                      const doneColumnKey = columnKeys[columnKeys.length - 1];
-                      const nextColumnKey = columnKeys[currentColumnIdx + 1];
+                      const columnOrder = newState.columnOrder;
+                      const currentColumnIdx = columnOrder.indexOf(columnId);
+                      
+                      if (currentColumnIdx === -1) return;
+
+                      let nextColumnIdx = currentColumnIdx + 1;
+                      
+                      // If we are in a Todo column, skip all other Todo columns to move to the next group
+                      if (columnId.startsWith('Todo')) {
+                        while (nextColumnIdx < columnOrder.length && columnOrder[nextColumnIdx].startsWith('Todo')) {
+                          nextColumnIdx++;
+                        }
+                      }
+
+                      if (nextColumnIdx >= columnOrder.length) return;
+
+                      const nextColumnKey = columnOrder[nextColumnIdx];
+                      const doneColumnKey = columnOrder[columnOrder.length - 1];
                       
                       updateTaskTimestamps(task, columnId, nextColumnKey);
 
@@ -427,8 +448,8 @@ export default function TaskBoard({ vscode, initialData }) {
                     onCompleteTask={(task: TaskInterface, columnId: string) => {
                       task.done = true;
                       const newState = { ...state };
-                      const columnKeys = Object.keys(newState.columns);
-                      const doneColumnKey = columnKeys[columnKeys.length - 1];
+                      const columnOrder = newState.columnOrder;
+                      const doneColumnKey = columnOrder[columnOrder.length - 1];
                       
                       updateTaskTimestamps(task, columnId, doneColumnKey);
 

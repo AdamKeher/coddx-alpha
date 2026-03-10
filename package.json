@@ -36,7 +36,8 @@
   ],
   "activationEvents": [
     "onCommand:extension.viewconfig",
-    "onCommand:extension.taskboard"
+    "onCommand:extension.taskboard",
+    "onView:ak74-taskboard-sidebar"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -53,6 +54,24 @@
         "category": "AK74"
       }
     ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "ak74-taskboard-container",
+          "title": "AK74 Task Board",
+          "icon": "static/logo.png"
+        }
+      ]
+    },
+    "views": {
+      "ak74-taskboard-container": [
+        {
+          "type": "webview",
+          "id": "ak74-taskboard-sidebar",
+          "name": "Task Board Overview"
+        }
+      ]
+    },
     "menus": {
       "explorer/context": [
         {

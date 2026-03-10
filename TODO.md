@@ -6,12 +6,16 @@ Project Description
 
 ### Todo
 
-- [ ] feat: add spelling and grammar checking when editing a task
-- [ ] docs: update docs with new screen captures, capabilities list and .mov
-- [ ] ui: add hyperlinks
+- [ ] feat: add spelling and grammar checking when editing a task  
+- [ ] docs: update docs with new screen captures, capabilities list and .mov  
+- [ ] ui: add hyperlinks  
 
 ### In Progress
 
+- [ ] feat: add a icon for the Task Board to the Activity Bar in VSCODE. Include a badge for the number of "In Progress" items.  
+  > Started: 3/10/2026, 5:44:09 PM  
+- [ ] !bug tasks: when using the right button for tasks in the Todo column, when there are sub-categories below the task, it seems to move the task down down a sub-category rather than across to the InProgress column.  
+  > Started: 3/10/2026, 5:43:44 PM  
 
 ### Done ✓
 

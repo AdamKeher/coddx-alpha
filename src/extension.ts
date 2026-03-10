@@ -5,14 +5,34 @@ import * as vscode from 'vscode';
 
 import CodeGenLoader from './view/ViewLoader';
 import TaskBoardLoader from './view/TaskBoardLoader';
+import { TaskBoardSidebarProvider } from './view/TaskBoardSidebarProvider';
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
-  // Use the console to output diagnostic information (console.log) and errors (console.error)
-  // This line of code will only be executed once when your extension is activated
-  // console.log('Congratulations, your extension "vscode-react" is now active!');
-  // context.subscriptions.push(telemetry);
+  const sidebarProvider = new TaskBoardSidebarProvider(context.extensionUri);
+  context.subscriptions.push(
+    vscode.window.registerWebviewViewProvider(
+      TaskBoardSidebarProvider.viewType,
+      sidebarProvider
+    )
+  );
+
+  // Update badge on start
+  sidebarProvider.updateBadge();
+
+  // Update badge when TODO.md or related files change
+  const configuration = vscode.workspace.getConfiguration();
+  const fileList: string = configuration.get('ak74.taskBoard.fileList') || 'TODO.md';
+  const filesArr = fileList.split(',').map(str => str.trim());
+
+  filesArr.forEach(file => {
+    const watcher = vscode.workspace.createFileSystemWatcher(`**/${file}`);
+    watcher.onDidChange(() => sidebarProvider.updateBadge());
+    watcher.onDidCreate(() => sidebarProvider.updateBadge());
+    watcher.onDidDelete(() => sidebarProvider.updateBadge());
+    context.subscriptions.push(watcher);
+  });
 
   // The command has been defined in the package.json file
   // Now provide the implementation of the command with registerCommand
