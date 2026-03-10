@@ -110,6 +110,43 @@ export default class TaskBoardLoader {
               selectedFile: this._selectedFile
             });
             break;
+          case CommandAction.AiRefine:
+            const taskId = command.content.name;
+            const taskContent = command.content.description || '';
+            (async () => {
+              try {
+                const models = await vscode.lm.selectChatModels();
+                if (!models || models.length === 0) {
+                  this._panel.webview.postMessage({
+                    action: 'aiRefineResponse',
+                    taskId,
+                    error: 'No AI models available. Please ensure GitHub Copilot or another VS Code AI extension is active.'
+                  });
+                  return;
+                }
+                const model = models[0];
+                const prompt = `You are a professional task manager assistant. Rewrite the following task to be clear, concise, and actionable. Rules:\n- Keep the title on the first line\n- Add a brief description on subsequent lines only if it adds value\n- Preserve any checklist items using ( ) and (x) format\n- Do not use markdown headers or dashes for bullets\n- Output only the rewritten task content, nothing else\n\nTask:\n${taskContent}`;
+                const messages = [vscode.LanguageModelChatMessage.User(prompt)];
+                const cts = new vscode.CancellationTokenSource();
+                const response = await model.sendRequest(messages, {}, cts.token);
+                let result = '';
+                for await (const chunk of response.text) {
+                  result += chunk;
+                }
+                this._panel.webview.postMessage({
+                  action: 'aiRefineResponse',
+                  taskId,
+                  result: result.trim()
+                });
+              } catch (err: any) {
+                this._panel.webview.postMessage({
+                  action: 'aiRefineResponse',
+                  taskId,
+                  error: err?.message || 'AI refinement failed.'
+                });
+              }
+            })();
+            break;
         }
       },
       undefined,
@@ -132,7 +169,8 @@ export default class TaskBoardLoader {
 
   private getWebviewContent({ basePath, templateString, fileList, selectedFile, rootPath, savedState }): string {
     const reactAppPathOnDisk = vscode.Uri.file(path.join(this._extensionPath, 'configViewer', 'configViewer.js'));
-    const reactAppUri = reactAppPathOnDisk.with({ scheme: 'vscode-resource' });
+    const reactAppUri = this._panel.webview.asWebviewUri(reactAppPathOnDisk);
+    const cspSource = this._panel.webview.cspSource;
 
     const initialData = {
       name: 'TaskBoard',
@@ -152,8 +190,8 @@ export default class TaskBoardLoader {
         <meta http-equiv="Content-Security-Policy"
                     content="default-src 'none';
                              img-src https:;
-                             script-src 'unsafe-eval' 'unsafe-inline' vscode-resource:;
-                             style-src vscode-resource: 'unsafe-inline' https://cdnjs.cloudflare.com;
+                             script-src 'unsafe-eval' 'unsafe-inline' ${cspSource};
+                             style-src ${cspSource} 'unsafe-inline' https://cdnjs.cloudflare.com;
                              font-src https://cdnjs.cloudflare.com;">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
         <script>

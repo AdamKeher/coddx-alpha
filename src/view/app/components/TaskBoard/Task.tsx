@@ -202,6 +202,78 @@ const ActionWrapper = styled.div<{ hasTimestamps?: boolean }>`
   transition: opacity 0.2s ease, visibility 0.2s ease;
 `;
 
+const AiDraftSection = styled.div`
+  margin: 0 8px 8px 8px;
+  border-radius: 4px;
+  border: 1px solid rgba(138, 180, 248, 0.4);
+  background-color: rgba(138, 180, 248, 0.08);
+  overflow: hidden;
+`;
+
+const AiDraftLabel = styled.div`
+  font-size: 0.75em;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  padding: 4px 8px;
+  background-color: rgba(138, 180, 248, 0.15);
+  color: rgba(138, 180, 248, 0.9);
+  border-bottom: 1px solid rgba(138, 180, 248, 0.2);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+`;
+
+const AiDraftContent = styled.div`
+  padding: 6px 8px;
+  white-space: pre-wrap;
+  font-family: inherit;
+  font-size: 0.95em;
+  color: rgba(255, 255, 255, 0.9);
+`;
+
+const AiDraftActions = styled.div`
+  display: flex;
+  gap: 6px;
+  padding: 4px 8px 6px 8px;
+  border-top: 1px solid rgba(138, 180, 248, 0.15);
+`;
+
+const AiAcceptBtn = styled.button`
+  padding: 3px 10px;
+  font-size: 0.8em;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  background-color: rgba(100, 200, 120, 0.3);
+  color: #8eda9f;
+  border: 1px solid rgba(100, 200, 120, 0.4);
+  &:hover {
+    background-color: rgba(100, 200, 120, 0.5);
+  }
+`;
+
+const AiRejectBtn = styled.button`
+  padding: 3px 10px;
+  font-size: 0.8em;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  background-color: rgba(220, 80, 80, 0.2);
+  color: #e88;
+  border: 1px solid rgba(220, 80, 80, 0.35);
+  &:hover {
+    background-color: rgba(220, 80, 80, 0.35);
+  }
+`;
+
+const AiErrorText = styled.div`
+  padding: 6px 8px;
+  font-size: 0.82em;
+  color: #e88;
+  font-style: italic;
+`;
+
 const TaskWrapper = styled.div`
   display: flex;
   flex-direction: column;
@@ -297,6 +369,9 @@ export default memo(
     const [isCollapsed, setIsCollapsed] = React.useState(savedState.isTaskCollapsed?.[task.id] ?? true);
     const [menuActive, setMenuActive] = React.useState('');
     const inputRef: React.RefObject<HTMLTextAreaElement> = React.createRef();
+    const [aiLoading, setAiLoading] = React.useState(false);
+    const [aiDraft, setAiDraft] = React.useState<string | null>(null);
+    const [aiError, setAiError] = React.useState<string | null>(null);
 
     const toggleCollapsed = (e) => {
       e.stopPropagation();
@@ -327,6 +402,46 @@ export default memo(
         inputRef.current.setSelectionRange(inputRef.current.value.length, inputRef.current.value.length);
       }
     }, [isEditing]);
+
+    React.useEffect(() => {
+      const handleMessage = (event: MessageEvent) => {
+        const msg = event.data;
+        if (msg.action === 'aiRefineResponse' && msg.taskId === task.id) {
+          setAiLoading(false);
+          if (msg.error) {
+            setAiError(msg.error);
+          } else {
+            setAiDraft(msg.result);
+          }
+        }
+      };
+      window.addEventListener('message', handleMessage);
+      return () => window.removeEventListener('message', handleMessage);
+    }, [task.id]);
+
+    const handleAiRefine = (e: React.MouseEvent) => {
+      e.stopPropagation();
+      setAiLoading(true);
+      setAiDraft(null);
+      setAiError(null);
+      vscodeHelper.aiRefine(task.id, task.content);
+    };
+
+    const handleAiAccept = (e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (aiDraft) {
+        onChangeTask(task.id, { ...task, content: aiDraft });
+        setMainKey('key_' + Math.random());
+      }
+      setAiDraft(null);
+      setAiError(null);
+    };
+
+    const handleAiReject = (e: React.MouseEvent) => {
+      e.stopPropagation();
+      setAiDraft(null);
+      setAiError(null);
+    };
 
     const isHidden = task.matched === false; // filtered by SearchInput's value
     if (isHidden) {
@@ -544,6 +659,15 @@ export default memo(
                       }
                     </TaskTimestamps>
                     <div style={{ display: 'flex' }}>
+                      <ActionIcon
+                        data-type="action-icon"
+                        disabled={aiLoading}
+                        title="AI Refine"
+                        onClick={handleAiRefine}
+                        style={{ opacity: aiLoading ? 0.5 : 1 }}
+                      >
+                        {aiLoading ? <i className="fas fa-spinner fa-spin" /> : '✨'}
+                      </ActionIcon>
                       {columnIndex > 0 && (
                         <ActionIcon data-type="action-icon" onClick={() => onBackwards(task)}>
                           <i className="fas fa-arrow-left" />
@@ -584,6 +708,30 @@ export default memo(
                   </ActionWrapper>
                 )}
               </TaskWrapper>
+
+            {(aiDraft || aiError) && (
+              <AiDraftSection onClick={e => e.stopPropagation()}>
+                <AiDraftLabel>
+                  ✨ AI Suggestion
+                </AiDraftLabel>
+                {aiError ? (
+                  <AiErrorText>{aiError}</AiErrorText>
+                ) : (
+                  <>
+                    <AiDraftContent>{aiDraft}</AiDraftContent>
+                    <AiDraftActions>
+                      <AiAcceptBtn onClick={handleAiAccept}>Accept</AiAcceptBtn>
+                      <AiRejectBtn onClick={handleAiReject}>Reject</AiRejectBtn>
+                    </AiDraftActions>
+                  </>
+                )}
+                {aiError && (
+                  <AiDraftActions>
+                    <AiRejectBtn onClick={handleAiReject}>Dismiss</AiRejectBtn>
+                  </AiDraftActions>
+                )}
+              </AiDraftSection>
+            )}
             </TaskContentArea>
           </TaskContainer>
         )}

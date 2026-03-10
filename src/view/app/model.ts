@@ -26,5 +26,6 @@ export enum CommandAction {
   Load,
   OpenFile,
   GenerateFiles,
-  SaveState
+  SaveState,
+  AiRefine
 }

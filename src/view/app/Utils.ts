@@ -210,6 +210,14 @@ export function getVscodeHelper(vscode: any) {
       if (vscode.postMessage) {
         vscode.postMessage(command);
       }
+    },
+    aiRefine: (taskId: string, content: string) => {
+      if (vscode.postMessage) {
+        vscode.postMessage({
+          action: CommandAction.AiRefine,
+          content: { name: taskId, description: content }
+        });
+      }
     }
   };
 }
