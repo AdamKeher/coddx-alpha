@@ -45,7 +45,7 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(disposable);
 
   let taskBoardCmd = vscode.commands.registerCommand('extension.taskboard', (uri: vscode.Uri) => {
-    TaskBoardLoader.createOrShow(context.extensionPath, uri);
+    TaskBoardLoader.createOrShow(context, uri);
   });
   context.subscriptions.push(taskBoardCmd);
 }

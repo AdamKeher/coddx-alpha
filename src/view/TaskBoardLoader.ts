@@ -12,7 +12,7 @@ export default class TaskBoardLoader {
   private _disposables: vscode.Disposable[] = [];
   private _selectedFile: string = '';
 
-  public static createOrShow(extensionPath: string, uri: vscode.Uri) {
+  public static createOrShow(context: vscode.ExtensionContext, uri: vscode.Uri) {
     const column = vscode.window.activeTextEditor
       ? vscode.window.activeTextEditor.viewColumn
       : undefined;
@@ -24,11 +24,11 @@ export default class TaskBoardLoader {
     }
 
     // Otherwise, create a new panel.
-    TaskBoardLoader.currentPanel = new TaskBoardLoader(extensionPath, uri);
+    TaskBoardLoader.currentPanel = new TaskBoardLoader(context, uri);
   }
 
-  private constructor(extensionPath: string, uri: vscode.Uri) {
-    this._extensionPath = extensionPath;
+  private constructor(context: vscode.ExtensionContext, uri: vscode.Uri) {
+    this._extensionPath = context.extensionPath;
 
     const configuration = vscode.workspace.getConfiguration();
     const fileList: string = configuration.get('ak74.taskBoard.fileList') || 'TODO.md';
@@ -41,7 +41,7 @@ export default class TaskBoardLoader {
 
     this._panel = vscode.window.createWebviewPanel('taskBoard', 'AK74 Task Board', column || vscode.ViewColumn.One, {
       enableScripts: true,
-      localResourceRoots: [vscode.Uri.file(path.join(extensionPath, 'configViewer'))],
+      localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath, 'configViewer'))],
       retainContextWhenHidden: true
     });
 
@@ -55,12 +55,16 @@ export default class TaskBoardLoader {
     const fullPath = path.join(rootPath, this._selectedFile);
     const todoStr = this.getFileContent(vscode.Uri.file(fullPath)) || '';
 
+    // Load persisted state
+    const savedState = context.workspaceState.get('taskBoardState', {});
+
     this._panel.webview.html = this.getWebviewContent({
       basePath,
       templateString: todoStr,
       fileList,
       selectedFile: this._selectedFile,
-      rootPath
+      rootPath,
+      savedState
     });
 
     vscode.workspace.onDidSaveTextDocument((e) => {
@@ -86,6 +90,15 @@ export default class TaskBoardLoader {
             break;
           case CommandAction.Save:
             this.saveFileContent(command.content);
+            break;
+          case CommandAction.SaveState:
+            // Save state to workspaceState
+            try {
+              const state = JSON.parse(command.content.description);
+              context.workspaceState.update('taskBoardState', state);
+            } catch (e) {
+              console.error('Failed to save task board state', e);
+            }
             break;
           case CommandAction.Load:
             this._selectedFile = command.content.description || 'TODO.md';
@@ -117,7 +130,7 @@ export default class TaskBoardLoader {
     }
   }
 
-  private getWebviewContent({ basePath, templateString, fileList, selectedFile, rootPath }): string {
+  private getWebviewContent({ basePath, templateString, fileList, selectedFile, rootPath, savedState }): string {
     const reactAppPathOnDisk = vscode.Uri.file(path.join(this._extensionPath, 'configViewer', 'configViewer.js'));
     const reactAppUri = reactAppPathOnDisk.with({ scheme: 'vscode-resource' });
 
@@ -126,7 +139,8 @@ export default class TaskBoardLoader {
       path: basePath,
       dataString: templateString,
       fileList: fileList,
-      selectedFile: selectedFile
+      selectedFile: selectedFile,
+      savedState: savedState
     };
 
     return `<!DOCTYPE html>

@@ -2,7 +2,7 @@ import * as React from 'react';
 import styled from 'styled-components';
 import { Draggable } from 'react-beautiful-dnd';
 import TextareaAutosize from 'react-autosize-textarea';
-import { DragIcon, isDoneColumn, isArchivedColumn } from './Helpers';
+import { DragIcon, isDoneColumn, isArchivedColumn, isTodoColumn, isInProgressColumn } from './Helpers';
 import TaskMenu from './TaskMenu';
 import { parseInline } from 'marked';
 
@@ -189,15 +189,16 @@ const StyledTextarea = styled(TextareaAutosize)`
   font-family: inherit;
 `;
 
-const ActionWrapper = styled.div`
+const ActionWrapper = styled.div<{ hasTimestamps?: boolean }>`
   display: flex;
-  justify-content: flex-end;
-  padding: 4px 6px;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2px 6px;
   background-color: rgba(0, 0, 0, 0.1);
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   /* Reserving space to prevent layout jumping on hover */
-  opacity: 0;
-  visibility: hidden;
+  opacity: ${props => props.hasTimestamps ? 1 : 0};
+  visibility: ${props => props.hasTimestamps ? 'visible' : 'hidden'};
   transition: opacity 0.2s ease, visibility 0.2s ease;
 `;
 
@@ -224,13 +225,13 @@ const MainRow = styled.div`
 `;
 
 const TaskTimestamps = styled.div`
-  padding: 2px 8px 6px 32px;
-  font-size: 0.75em;
+  font-size: 0.85em;
   opacity: 0.7;
   font-style: italic;
   display: flex;
-  flex-direction: column;
-  gap: 2px;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-left: 4px;
 `;
 
 const ActionIcon = styled.span<{ disabled?: boolean }>`
@@ -423,16 +424,14 @@ export default memo(
               {!isEditing && (
                 <TaskHeader>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <i className={`fas ${task.category ? 'fa-tag' : 'fa-tasks'} header-icon`} />
+                    {isTodoColumn(column.title) && <i className="far fa-square header-icon" />}
+                    {isInProgressColumn(column.title) && <i className="far fa-circle header-icon" />}
+                    {isDoneColumn(column.title) && <i className="far fa-check-square header-icon" />}
+                    {isArchivedColumn(column.title) && <i className="fas fa-file-archive header-icon" />}
+                    {!isTodoColumn(column.title) && !isInProgressColumn(column.title) && !isDoneColumn(column.title) && !isArchivedColumn(column.title) && (
+                       <i className={`fas ${task.category ? 'fa-tag' : 'fa-tasks'} header-icon`} />
+                    )}
                     {task.category || 'Task'}
-                  </div>
-                  <div className="status-icons">
-                    {isArchivedColumn(column.title) && (
-                      <i className="fas fa-folder header-icon" title="Archived" />
-                    )}
-                    {(task.done || isDoneColumn(column.title)) && (
-                      <i className="fas fa-check header-icon" title="Done" />
-                    )}
                   </div>
                 </TaskHeader>
               )}
@@ -508,29 +507,21 @@ export default memo(
                   </DescriptionContainer>
                 )}
 
-                {(!isEditing && task.content && (task.content.includes('> Started:') || task.content.includes('> Completed:'))) && (
-                  <TaskTimestamps>
-                    {task.content.split('\n')
-                      .filter(line => line.startsWith('> Started:') || line.startsWith('> Completed:'))
-                      .map((line, idx) => (
-                        <span key={idx}>{line.replace('> ', '')}</span>
-                      ))
-                    }
-                  </TaskTimestamps>
-                )}
-
                 {isEditing ? (
                   <ActionWrapper>
-                    <ActionIcon
-                      data-type="action-icon"
-                      onMouseOver={() => setMenuActive('MENU')}
-                      onClick={() => {
-                        setMenuActive('');
-                        setIsEditing(false);
-                      }}
-                    >
-                      <i className="fas fa-bars" />
-                    </ActionIcon>
+                    <div />
+                    <div style={{ display: 'flex' }}>
+                      <ActionIcon
+                        data-type="action-icon"
+                        onMouseOver={() => setMenuActive('MENU')}
+                        onClick={() => {
+                          setMenuActive('');
+                          setIsEditing(false);
+                        }}
+                      >
+                        <i className="fas fa-bars" />
+                      </ActionIcon>
+                    </div>
                     {menuActive && (
                       <TaskMenu
                         task={task}
@@ -543,43 +534,53 @@ export default memo(
                     )}
                   </ActionWrapper>
                 ) : (
-                  <ActionWrapper>
-                    {columnIndex > 0 && (
-                      <ActionIcon data-type="action-icon" onClick={() => onBackwards(task)}>
-                        <i className="fas fa-arrow-left" />
+                  <ActionWrapper hasTimestamps={task.content && (task.content.includes('> Started:') || task.content.includes('> Completed:'))}>
+                    <TaskTimestamps>
+                      {task.content && task.content.split('\n')
+                        .filter(line => line.startsWith('> Started:') || line.startsWith('> Completed:'))
+                        .map((line, idx) => (
+                          <span key={idx}>{line.replace('> ', '')}</span>
+                        ))
+                      }
+                    </TaskTimestamps>
+                    <div style={{ display: 'flex' }}>
+                      {columnIndex > 0 && (
+                        <ActionIcon data-type="action-icon" onClick={() => onBackwards(task)}>
+                          <i className="fas fa-arrow-left" />
+                        </ActionIcon>
+                      )}
+                      {onMoveUp && (
+                        <ActionIcon
+                          data-type="action-icon"
+                          disabled={!canMoveUp}
+                          onClick={() => canMoveUp && onMoveUp(task)}
+                        >
+                          <i className="fas fa-chevron-up" />
+                        </ActionIcon>
+                      )}
+                      {onMoveDown && (
+                        <ActionIcon
+                          data-type="action-icon"
+                          disabled={!canMoveDown}
+                          onClick={() => canMoveDown && onMoveDown(task)}
+                        >
+                          <i className="fas fa-chevron-down" />
+                        </ActionIcon>
+                      )}
+                      {(!task.done || !column.isLast) && (
+                        <ActionIcon data-type="action-icon" onClick={() => onInProgress(task)}>
+                          <i className="fas fa-arrow-right" />
+                        </ActionIcon>
+                      )}
+                      {!task.done && (
+                        <ActionIcon data-type="action-icon" onClick={() => onComplete(task)}>
+                          <i className="fas fa-check" />
+                        </ActionIcon>
+                      )}
+                      <ActionIcon data-type="action-icon" onClick={() => onDelete(task)}>
+                        <i className="fas fa-times" />
                       </ActionIcon>
-                    )}
-                    {onMoveUp && (
-                      <ActionIcon
-                        data-type="action-icon"
-                        disabled={!canMoveUp}
-                        onClick={() => canMoveUp && onMoveUp(task)}
-                      >
-                        <i className="fas fa-chevron-up" />
-                      </ActionIcon>
-                    )}
-                    {onMoveDown && (
-                      <ActionIcon
-                        data-type="action-icon"
-                        disabled={!canMoveDown}
-                        onClick={() => canMoveDown && onMoveDown(task)}
-                      >
-                        <i className="fas fa-chevron-down" />
-                      </ActionIcon>
-                    )}
-                    {(!task.done || !column.isLast) && (
-                      <ActionIcon data-type="action-icon" onClick={() => onInProgress(task)}>
-                        <i className="fas fa-arrow-right" />
-                      </ActionIcon>
-                    )}
-                    {!task.done && (
-                      <ActionIcon data-type="action-icon" onClick={() => onComplete(task)}>
-                        <i className="fas fa-check" />
-                      </ActionIcon>
-                    )}
-                    <ActionIcon data-type="action-icon" onClick={() => onDelete(task)}>
-                      <i className="fas fa-times" />
-                    </ActionIcon>
+                    </div>
                   </ActionWrapper>
                 )}
               </TaskWrapper>

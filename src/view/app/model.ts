@@ -2,6 +2,12 @@ export interface IConfig {
   name: string;
   description?: string;
   users?: IUser[];
+  // TaskBoard fields
+  path?: string;
+  dataString?: string;
+  fileList?: string;
+  selectedFile?: string;
+  savedState?: any;
 }
 export interface IUser {
   name: string;
@@ -19,5 +25,6 @@ export enum CommandAction {
   Save,
   Load,
   OpenFile,
-  GenerateFiles
+  GenerateFiles,
+  SaveState
 }

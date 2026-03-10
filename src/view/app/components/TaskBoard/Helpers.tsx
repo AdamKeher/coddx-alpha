@@ -14,6 +14,20 @@ AK74 manages tasks and save them as TODO.md.
 
 `;
 
+export const isTodoColumn = (columnName: string) => {
+  if (!columnName) {
+    return false;
+  }
+  return columnName.toLowerCase().startsWith('todo');
+};
+
+export const isInProgressColumn = (columnName: string) => {
+  if (!columnName) {
+    return false;
+  }
+  return !isTodoColumn(columnName) && !isDoneColumn(columnName) && !isArchivedColumn(columnName);
+};
+
 export const isDoneColumn = (columnName: string) => {
   if (!columnName) {
     return false;

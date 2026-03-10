@@ -164,8 +164,33 @@ export const sendCommand = (vscode: any, action: CommandAction, dataStr: string)
 
 export function getVscodeHelper(vscode: any) {
   return {
+    saveState: (state: any) => {
+      if (vscode.postMessage) {
+        vscode.postMessage({
+          action: CommandAction.SaveState,
+          content: {
+            name: '',
+            description: JSON.stringify(state)
+          }
+        });
+      }
+    },
     getState: () => (vscode.getState ? vscode.getState() : {}) || {},
-    setState: (state: any) => vscode.setState && vscode.setState(state),
+    setState: (state: any) => {
+      if (vscode.setState) {
+        vscode.setState(state);
+      }
+      // Also send to extension for persistence
+      if (vscode.postMessage) {
+        vscode.postMessage({
+          action: CommandAction.SaveState,
+          content: {
+            name: '',
+            description: JSON.stringify(state)
+          }
+        });
+      }
+    },
     showMessage: (msg: string) =>
       vscode.postMessage({
         action: CommandAction.ShowMessage,
