@@ -1,40 +1,55 @@
-# AK74: TODO.md Kanban Task Board
+# AK74: The Ultimate TODO.md Kanban Board for VS Code
 
-AK74 is a collection of tools that help developers program efficiently.
+[![Version](https://img.shields.io/visual-studio-marketplace/v/AdamKeher.ak74)](https://marketplace.visualstudio.com/items?itemName=AdamKeher.ak74)
+[![Installs](https://img.shields.io/visual-studio-marketplace/i/AdamKeher.ak74)](https://marketplace.visualstudio.com/items?itemName=AdamKeher.ak74)
 
-> **Note:** This is a fork of the original [Coddx](https://github.com/coddx-hq/coddx-alpha) project, enhanced with multi-line tasks, categories, automated timestamps, and a modern UI.
+**AK74** is a high-performance, developer-first Kanban task board that brings project management directly into your VS Code workflow. It's not just a board; it's a productivity engine built on the simple, portable `TODO.md` standard.
 
-AK74 manages tasks and save them as [TODO.md](https://bit.ly/2JdEuET) - a simple plain text file.
+## ✨ Why AK74 Kanban?
 
-## Features
+- **Magic AI Refinement (✨):** Use built-in AI to refine your tasks, break them into sub-steps, and improve descriptions instantly.
+- **Smart Activity Sidebar:** View real-time stats (Todo, In Progress, Done) and a task count badge directly in your VS Code Activity Bar.
+- **Automatic Metadata:** AK74 handles the "paperwork" by automatically adding `Added`, `Started`, and `Completed` timestamps to your `TODO.md`.
+- **Developer-Centric UX:** Fully keyboard-navigable, with multi-select support, real-time search, and smooth drag-and-drop.
+- **Rich Visual Organization:** Automatic color-coding for categories, priority badges (`!p1`, `!p2`), and a dedicated "Bug" style for urgent fixes.
 
-- **Multi-line Tasks:** Support for tasks spanning multiple lines.
-- **Categories:** Use `category:` prefix for automatic color-coding.
-- **Timestamps:** Automated `Added:`, `Started:`, and `Completed:` timestamps.
-- **Kanban Interface:** Drag and drop tasks between columns.
-- **Markdown Compatible:** The syntax is compatible with [Github Markdown](https://bit.ly/2wBp1Mk).
-- **Portable:** TODO.md file is portable and can be committed with Pull Requests (PRs).
-- **Customizable:** Support custom file name, multiple task lists.
-- **Rich Title:** Task title can also have markdown for styling, hyperlinks, simple html or even img tags.
+<p align="center">
+  <img src="docs/media/ak74-kanban-demo.gif" alt="AK74 Demo" />
+</p>
 
-## Usage:
+## 🚀 Features at a Glance
 
-- Open AK74 Task Board:
-  - Bring up the Command Palette (F1), type and select: **AK74: TODO.md Kanban Task Board**.
-- When interacting with the Task Board, TODO.md will be created or updated automatically.
-- Vice versa, TODO.md can be edited manually, Task Board will load it every time (click the Refresh icon or Save the file).
+| Feature                    | Description                                                                         |
+| :------------------------- | :---------------------------------------------------------------------------------- |
+| **TODO.md Based**          | Your tasks live in a plain text file—portable, git-friendly, and GitHub-compatible. |
+| **Multi-line Support**     | Write detailed task descriptions with Markdown, nested lists, and sub-tasks.        |
+| **Advanced DnD**           | Drag and drop tasks, columns, and sub-columns. Even nest tasks within tasks.        |
+| **Sub-Category Smartness** | AK74 remembers where tasks came from, preserving your organizational structure.     |
+| **Collapsible Sections**   | Keep your board clean with collapsible tasks, categories, and archived columns.     |
+| **Deep Integration**       | Seamlessly works with multiple task lists across your entire workspace.             |
 
-<img src="docs/media/task-board-demo.gif" />
+## 🛠 Usage
 
-<img src="docs/media/task-board.png" />
+1. **Open the Board:** Open the Command Palette (`F1` or `Ctrl+Shift+P`) and type: `AK74: TODO.md Kanban Task Board`.
+2. **Interactive Management:** Drag, drop, and edit tasks. Every change is instantly synced to your `TODO.md` file.
+3. **Sidebar Stats:** Click the AK74 icon in the Activity Bar to see a quick summary of your current progress.
 
-<hr />
+## ⚙️ Customization
 
-## Support
+In your workspace `settings.json`, you can define multiple task lists:
+```json
+"ak74.taskBoard.fileList": "TODO.md, docs/BACKLOG.md"
+```
 
-- For Feedbacks, Bug Reports: https://github.com/AdamKeher/coddx-alpha/issues
-- <a href="https://github.com/AdamKeher/coddx-alpha/blob/master/CHANGELOG.md">CHANGELOG</a>
+---
 
-## Credits:
+## 📖 Learn More
+For a deep dive into all features, keyboard shortcuts, and the `TODO.md` format, check out the **[Feature Guide](docs/task-board.md)**.
 
-Original project by [Coddx](https://github.com/coddx-hq/coddx-alpha).
+## 🤝 Support & Feedback
+- **Found a bug?** [Open an issue](https://github.com/AdamKeher/coddx-alpha/issues)
+- **Enjoying AK74?** Leave a review on the [Marketplace](https://marketplace.visualstudio.com/items?itemName=AdamKeher.ak74)!
+
+---
+
+*AK74 is an enhanced fork of the original [Coddx](https://github.com/coddx-hq/coddx-alpha) project.*
