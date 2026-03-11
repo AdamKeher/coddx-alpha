@@ -1,6 +1,6 @@
 import { ICommand, CommandAction } from './model';
 
-export const VER = '0.4.0'; // TODO: get this from package.json.
+export const VER = '0.4.1'; // TODO: get this from package.json.
 
 // const TelemetryReporter = require('vscode-extension-telemetry');
 // const extensionId = 'coddx-alpha';

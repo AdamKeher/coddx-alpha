@@ -18,7 +18,7 @@ To create a distributable package, follow these steps on your development machin
     *Note: The `--no-yarn` flag ensures `npm` is used for the build process.*
 
 3.  **Result:**
-    A file named `ak74-todo-kanban-0.4.0.vsix` (or similar, depending on the version in `package.json`) will be created in the root directory.
+    A file named `ak74-todo-kanban-0.4.1.vsix` (or similar, depending on the version in `package.json`) will be created in the root directory.
 
 ---
 
@@ -37,7 +37,7 @@ Once you have the `.vsix` file, you can install it on any machine running VS Cod
 1.  Open a terminal or command prompt.
 2.  Run the following command:
     ```powershell
-    code --install-extension ak74-todo-kanban-0.4.0.vsix
+    code --install-extension ak74-todo-kanban-0.4.1.vsix
     ```
 
 ---
