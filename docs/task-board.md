@@ -39,6 +39,16 @@ Never lose track of when work happened. AK74 automatically appends metadata to y
 
 ---
 
+## ⚡ Quick Start
+
+### Create a Task List
+If you're starting a new project, AK74 can generate a default `TODO.md` for you:
+1. Open the Command Palette (`Ctrl+Shift+P`).
+2. Search for: **`AK74: Create default TODO.md`**.
+3. **Smart Conflict Resolution:** If a `TODO.md` already exists in your workspace root, the command will automatically name the new file `TODO.1.md`, `TODO.2.md`, etc., ensuring your existing data is never overwritten.
+
+---
+
 ## 🛠️ How it Works: The TODO.md Format
 
 AK74 is built on top of the open [TODO.md](https://bit.ly/2JdEuET) standard. This means your task board is:

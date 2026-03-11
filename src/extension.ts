@@ -40,6 +40,43 @@ export function activate(context: vscode.ExtensionContext) {
     TaskBoardLoader.createOrShow(context, uri);
   });
   context.subscriptions.push(taskBoardCmd);
+
+  let createTodoCmd = vscode.commands.registerCommand('extension.createTodo', async () => {
+    const workspaceFolders = vscode.workspace.workspaceFolders;
+    if (!workspaceFolders) {
+      vscode.window.showErrorMessage('No workspace folder open');
+      return;
+    }
+
+    const rootUri = workspaceFolders[0].uri;
+    let fileName = 'TODO.md';
+    let fileUri = vscode.Uri.joinPath(rootUri, fileName);
+    let x = 1;
+
+    // Find a unique filename
+    while (true) {
+      try {
+        await vscode.workspace.fs.stat(fileUri);
+        fileName = `TODO.${x}.md`;
+        fileUri = vscode.Uri.joinPath(rootUri, fileName);
+        x++;
+      } catch {
+        break; // File does not exist
+      }
+    }
+
+    const templateUri = vscode.Uri.joinPath(context.extensionUri, 'template', 'TODO.md');
+    try {
+      const templateContent = await vscode.workspace.fs.readFile(templateUri);
+      await vscode.workspace.fs.writeFile(fileUri, templateContent);
+      const doc = await vscode.workspace.openTextDocument(fileUri);
+      await vscode.window.showTextDocument(doc);
+      vscode.window.showInformationMessage(`Created ${fileName}`);
+    } catch (err) {
+      vscode.window.showErrorMessage(`Failed to create TODO.md: ${err}`);
+    }
+  });
+  context.subscriptions.push(createTodoCmd);
 }
 
 // this method is called when your extension is deactivated

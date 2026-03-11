@@ -30,9 +30,10 @@
 
 ## 🛠 Usage
 
-1. **Open the Board:** Open the Command Palette (`F1` or `Ctrl+Shift+P`) and type: `AK74: TODO.md Kanban Task Board`.
-2. **Interactive Management:** Drag, drop, and edit tasks. Every change is instantly synced to your `TODO.md` file.
-3. **Sidebar Stats:** Click the AK74 icon in the Activity Bar to see a quick summary of your current progress.
+1. **Create a Task List:** If you don't have a `TODO.md` file yet, open the Command Palette and type: `AK74: Create default TODO.md`. This will create a new task list from a pre-defined template.
+2. **Open the Board:** Open the Command Palette (`F1` or `Ctrl+Shift+P`) and type: `AK74: TODO.md Kanban Task Board`.
+3. **Interactive Management:** Drag, drop, and edit tasks. Every change is instantly synced to your `TODO.md` file.
+4. **Sidebar Stats:** Click the AK74 icon in the Activity Bar to see a quick summary of your current progress.
 
 ## ⚙️ Customization
 
